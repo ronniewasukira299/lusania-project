@@ -1,20 +1,20 @@
-# Use official PHP 8.2 with Nginx & PHP-FPM (works with Laravel 12)
-FROM richarvey/nginx-php-fpm:3.1.0
+# Use PHP 8.4 version of the image
+FROM richarvey/nginx-php-fpm:3-php8.4
 
-# Set Laravel root directory
+# Set Laravel public folder as web root
 ENV WEBROOT /var/www/html/public
 
-# Copy your project files
+# Copy entire project
 COPY . /var/www/html
 
-# Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Run Laravel setup commands
+RUN php artisan key:generate --force --no-interaction \
+    && php artisan migrate --force --no-interaction \
+    && php artisan storage:link
 
-# Run Laravel commands during build
-RUN php artisan key:generate --force
-RUN php artisan migrate --force --seed
-RUN php artisan storage:link
+# Permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
