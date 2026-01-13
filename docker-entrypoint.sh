@@ -1,19 +1,17 @@
 #!/bin/sh
 set -e
 
-# 1. Generate key if it's not already set in the environment
-# This fixes the "Failed to open stream" error
+# 1. Generate key if not set
 php artisan key:generate --no-interaction --force
 
-# 2. Create the storage link
+# 2. Create storage link
 php artisan storage:link --force
 
-# 3. Run migrations (Wait for DB to be ready if necessary)
-# Note: In production, you might want to run this manually instead
+# 3. Run migrations (now with env vars loaded)
 php artisan migrate --force --no-interaction
 
-# 4. Start Nginx in the background
+# 4. Start Nginx in background
 service nginx start
 
-# 5. Start PHP-FPM in the foreground (this keeps the container alive)
+# 5. Start PHP-FPM in foreground (keeps container alive)
 exec php-fpm
