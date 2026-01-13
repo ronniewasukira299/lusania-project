@@ -1,7 +1,7 @@
 # Official PHP 8.4 FPM base image
 FROM php:8.4-fpm
 
-# Install Nginx + extensions (including pdo_pgsql for Postgres)
+# Install Nginx + dependencies + PostgreSQL client lib for pdo_pgsql
 RUN apt-get update && apt-get install -y \
     nginx \
     libpng-dev \
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
+    libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql pdo_pgsql exif pcntl bcmath zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -25,8 +26,8 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Copy .env.example to .env (prevents artisan crash)
-RUN cp .env.example .env
+# Copy .env.example to .env (prevents artisan crash if .env missing)
+RUN cp .env.example .env || true
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
@@ -38,12 +39,12 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Copy Nginx config
 COPY nginx.conf /etc/nginx/sites-available/default
 
-# Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 # Expose port
 EXPOSE 80
 
-# Use entrypoint script at runtime
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Runtime startup: artisan commands + start services
+CMD php artisan key:generate --force --no-interaction && \
+    php artisan migrate --force --no-interaction && \
+    php artisan storage:link && \
+    service nginx start && \
+    php-fpm
