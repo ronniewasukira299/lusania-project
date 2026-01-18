@@ -30,7 +30,7 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required_if:role,customer', 'string', 'max:255'], // Required only for customer
+            'username' => ['required', 'string', 'max:255', 'unique:users,name'], // Username must be unique
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:customer,staff,admin'], // Enforce allowed roles
@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
         $role = $request->input('role', 'customer');
 
         $user = User::create([
-            'name' => $request->name ?? $request->email, // Use email as fallback name for admin/staff
+            'name' => $request->username, // Use username from form
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $role,

@@ -10,12 +10,12 @@
     <form method="POST" action="{{ route('login') }}">
       @csrf
 
-      <!-- Username or Email -->
+      <!-- Email or Username -->
       <div class="mb-4">
-        <label class="form-label fw-bold">Username or Email</label>
-        <input type="text" name="login" class="form-control @error('login') is-invalid @enderror"
-               value="{{ old('login') }}" required autofocus autocomplete="username" placeholder="Username or email">
-        @error('login')
+        <label class="form-label fw-bold">Email or Username</label>
+        <input type="text" name="loginFieldName" class="form-control @error('loginFieldName') is-invalid @enderror"
+               value="{{ old('loginFieldName') }}" required autofocus autocomplete="username" placeholder="Username or Email">
+        @error('loginFieldName')
           <div class="invalid-feedback">{{ $message }}</div>
         @enderror
       </div>
