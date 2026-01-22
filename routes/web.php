@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Customer\OrderController; // If you have this controller
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\ProfileController;
 use App\Models\Product;
 
 // ================================
@@ -39,7 +41,9 @@ require __DIR__.'/auth.php';
 // ================================
 Route::middleware('auth')->group(function () {
     // Default Laravel dashboard
-    Route::get('/dashboard', fn() => view('dashboard'))
+    Route::get('/dashboard', fn() => view('dashboard', [
+        'orders' => Auth::user()->role === 'admin' ? App\Models\Order::latest()->get() : collect()
+    ]))
         ->middleware('verified')
         ->name('dashboard');
 
@@ -50,9 +54,12 @@ Route::middleware('auth')->group(function () {
 
     // Role-specific dashboards (protected by role middleware)
     Route::middleware('role:admin')->get('/admin', function () {
-        // Add admin data here later (e.g. $orders = Order::latest()->get())
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized. Admin access only.');
+        }
+        $orders = App\Models\Order::latest()->get();
+        return view('admin.dashboard', compact('orders'));
+    })->middleware(['auth', 'verified'])->name('admin.dashboard');
 
     Route::middleware('role:staff')->get('/staff/dashboard', function () {
         $orders = App\Models\Order::where('status', 'assigned')
@@ -75,7 +82,21 @@ Route::get('/register', function () {
     return view('auth.register', ['role' => 'customer']);
 })->name('register');
 
-    
+// Additional authenticated routes
+Route::middleware('auth')->group(function () {
+    // Staff routes
+    Route::post('/orders/{order}/start-journey', [OrderController::class, 'startJourney'])->middleware('role:staff')->name('orders.start-journey');
+    Route::post('/orders/{order}/mark-delivered', [OrderController::class, 'markDelivered'])->middleware('role:staff')->name('orders.mark-delivered');
+    Route::post('/staff/toggle-availability', [OrderController::class, 'toggleAvailability'])->middleware('role:staff')->name('staff.toggle-availability');
+
+    // Customer routes
+    Route::post('/orders/{order}/customer-confirm-delivery', [OrderController::class, 'customerConfirmDelivery'])->middleware('role:customer')->name('orders.customer-confirm-delivery');
+
+    // Admin routes
+    Route::delete('/orders/{order}', [OrderController::class, 'cancel'])->middleware('role:admin')->name('orders.cancel');
+});
+
+   
 // In web.php, add logout route if needed (Laravel has it, but to redirect to login)
 Route::post('/logout', function () {
     Auth::logout();

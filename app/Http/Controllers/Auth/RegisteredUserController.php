@@ -29,31 +29,36 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'username' => ['required', 'string', 'max:255', 'unique:users,name'], // Username must be unique
+        // Validate all required fields
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'max:255', 'unique:users,name'], 
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:customer,staff,admin'], // Enforce allowed roles
+            'role' => ['required', 'string', 'in:customer,staff,admin'], 
+        ], [
+            'username.required' => 'Username is required',
+            'email.required' => 'Email is required',
+            'password.required' => 'Password is required',
+            'password.confirmed' => 'Passwords do not match',
+            'role.required' => 'Role is required',
         ]);
 
-        $role = $request->input('role', 'customer');
-
         $user = User::create([
-            'name' => $request->username, // Use username from form
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $role,
+            'name' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user); // Auto-login after registration
+        Auth::login($user);
 
         // Role-based redirect after registration
-        return match ($role) {
+        return match ($validated['role']) {
             'admin' => redirect()->route('admin.dashboard'),
             'staff' => redirect()->route('staff.dashboard'),
-            default => redirect()->route('home'), // Customers go to home
+            default => redirect()->route('products'),
         };
     }
 }

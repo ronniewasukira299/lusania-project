@@ -26,8 +26,8 @@ class CheckUserRole
 
         // Check if user has ANY of the allowed roles
         if (! in_array($user->role, $roles)) {
-            abort(403, 'Unauthorized: Insufficient role.');
-            // Or redirect: return redirect('/')->with('error', 'Access denied.');
+           // abort(403, 'Unauthorized: Insufficient role.');
+             return redirect('/')->with('error', 'Access denied.');
         }
 
         return $next($request);

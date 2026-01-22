@@ -1,3 +1,4 @@
+admin dashboard 
 @extends('layouts.app')
 
 @section('title', 'Admin Dashboard')
@@ -5,45 +6,34 @@
 @section('content')
 <div class="container my-5">
   <h2 class="text-warning text-center mb-4">📊 Admin Orders Dashboard</h2>
-  <div id="orders"></div>
-  <button class="btn btn-danger mt-4" onclick="clearOrders()">Clear All Orders</button>
-</div>
-@endsection
 
-@section('scripts')
-<script>
-// Your original admin script – later replace with real DB data
-const orders = JSON.parse(localStorage.getItem("orders")) || [];
-const container = document.getElementById("orders");
+  @if ($orders->isEmpty())
+    <p class="text-center text-white">No orders yet.</p>
+  @else
+    @foreach ($orders as $order)
+      <div class="card bg-dark text-white mb-3">
+        <div class="card-body">
+          <h5>Order #{{ $order->id }}</h5>
+          <p><strong>Customer:</strong> {{ $order->user->name ?? 'Guest' }}</p>
+          <p><strong>Status:</strong> {{ ucfirst($order->status) }}</p>
+          <p><strong>Address:</strong> {{ $order->delivery_address }}</p>
+          <p><strong>Total:</strong> UGX {{ number_format($order->total_amount) }}</p>
+          <p><strong>Placed:</strong> {{ $order->created_at->format('M d, Y H:i') }}</p>
+          @if($order->assignment)
+            <p><strong>Assigned to:</strong> {{ $order->assignment->staff->name ?? 'N/A' }}</p>
+          @endif
 
-if (orders.length === 0) {
-  container.innerHTML = "<p>No orders yet.</p>";
-}
-
-orders.forEach((order, i) => {
-  let items = order.items.map(it => `${it.name} × ${it.qty}`).join("<br>");
-
-  container.innerHTML += `
-    <div class="card bg-dark text-white mb-3">
-      <div class="card-body">
-        <h5>Order #${i + 1}</h5>
-        <p><strong>Name:</strong> ${order.name}</p>
-        <p><strong>Phone:</strong> ${order.phone}</p>
-        <p><strong>Address:</strong> ${order.address}</p>
-        <p><strong>Payment:</strong> ${order.payment}</p>
-        <p><strong>Items:</strong><br>${items}</p>
-        <p><strong>Total:</strong> UGX ${order.total}</p>
-        <small>${order.date}</small>
+          <!-- Cancel button -->
+          @if($order->status != 'cancelled')
+            <form method="POST" action="{{ route('orders.cancel', $order) }}" class="mt-3">
+              @csrf
+              @method('DELETE')
+              <button type="submit" class="btn btn-danger btn-sm">Cancel Order</button>
+            </form>
+          @endif
+        </div>
       </div>
-    </div>
-  `;
-});
-
-function clearOrders() {
-  if (confirm("Clear all orders?")) {
-    localStorage.removeItem("orders");
-    location.reload();
-  }
-}
-</script>
+    @endforeach
+  @endif
+</div>
 @endsection

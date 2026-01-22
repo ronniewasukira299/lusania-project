@@ -11,6 +11,9 @@
     <!-- Your custom style (if you already copied it) -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
+    <!-- Pusher Library for Real-time Notifications -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+
     @yield('styles')
 </head>
 <body>
@@ -20,21 +23,21 @@
     <div class="container">
         <a class="navbar-brand" href="{{ url('/') }}">Caleb'S Chicken Lusania</a>
         <div class="collapse navbar-collapse">
-           <ul class="navbar-nav ms-auto">
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('home') }}">Home</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('products') }}">Products</a>
-    </li>
-    <!-- Add more public pages here -->
-    <li class="nav-item">
-        <a class="nav-link position-relative" href="{{ route('cart') }}">
-            🛒 Cart
-            <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-        </a>
-    </li>
-</ul> 
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('products') }}">Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{{ route('cart') }}">
+                        🛒 Cart
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
         </div>
     </div>
 </nav>
@@ -67,22 +70,41 @@
       </div>
     </div>
     <hr class="bg-secondary">
-    <p class="text-center mb-0">&copy; 2026 Caleb's Chicken Lusaniya. All rights reserved.</p>
+    <div class="d-flex justify-content-between align-items-center">
+      <p class="mb-0">&copy; 2026 Caleb's Chicken Lusaniya. All rights reserved.</p>
+      @auth
+      <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+      </form>
+      @endauth
+    </div>
   </div>
-
-@auth
-  <li class="nav-item">
-    <form method="POST" action="{{ route('logout') }}">
-      @csrf
-      <button type="submit" class="nav-link btn btn-link">Logout</button>
-    </form>
-  </li>
-@endauth  
-
-
 </footer>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Pusher Notifications Utility -->
+<script src="{{ asset('js/pusher-notifications.js') }}"></script>
+
+<!-- Initialize Pusher Notifications -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Pusher with credentials from config
+        PusherNotifications.init('{{ config("services.pusher.key") }}', '{{ config("services.pusher.options.cluster") }}');
+
+        // Set up notifications based on user role
+        @auth
+            @if(auth()->user()->role === 'customer')
+                PusherNotifications.subscribeToCustomerOrders({{ auth()->id() }});
+            @elseif(auth()->user()->role === 'staff')
+                PusherNotifications.subscribeToStaffOrders({{ auth()->id() }});
+            @elseif(auth()->user()->role === 'admin')
+                PusherNotifications.subscribeToAdminOrders();
+            @endif
+        @endauth
+    });
+</script>
 
 @yield('scripts')
 
