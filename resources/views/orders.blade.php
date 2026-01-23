@@ -49,6 +49,22 @@
               </div>
             </div>
 
+            <!-- Assignment Info -->
+            @if($order->assignment && $order->assignment->staff)
+              <div class="row mb-3 bg-secondary p-3 rounded">
+                <div class="col-md-12">
+                  <p class="mb-1"><strong>👨‍💼 Assigned to:</strong> <span class="text-warning">{{ $order->assignment->staff->name }}</span></p>
+                  <p class="mb-1"><strong>📞 Staff Status:</strong> <span class="badge bg-info">{{ ucfirst($order->assignment->staff->staffProfile->status ?? 'unavailable') }}</span></p>
+                </div>
+              </div>
+            @elseif($order->status !== 'cancelled' && $order->status !== 'delivered')
+              <div class="row mb-3 bg-warning p-3 rounded">
+                <div class="col-md-12">
+                  <p class="mb-0"><strong>🔄 Status:</strong> Waiting for staff assignment...</p>
+                </div>
+              </div>
+            @endif
+
             <!-- Order Items -->
             <div class="mb-3">
               <h6 class="text-warning">📋 Items Ordered:</h6>
@@ -63,25 +79,14 @@
 
             <!-- Order Total -->
             <div class="alert alert-info mb-3">
-              <h5 class="mb-0">💰 Total Amount: UGX {{ number_format($order->total_amount + 5000) }}</h5>
+              <h5 class="mb-0">💰 Total Amount: UGX {{ number_format($order->total_amount) }}</h5>
             </div>
-
-            <!-- Staff Assignment Info -->
-            @if ($order->assignment)
-              <p class="mb-3">
-                <strong>👨‍💼 Assigned to:</strong> {{ $order->assignment->staff->name ?? 'Pending Assignment' }}
-                @if ($order->assignment->staff->staffProfile)
-                  <br>
-                  <small class="text-muted">Status: {{ ucfirst($order->assignment->staff->staffProfile->status) }}</small>
-                @endif
-              </p>
-            @endif
 
             <!-- Actions based on Order Status -->
             <div class="row">
               <div class="col-12">
                 @if ($order->status === 'in_transit')
-                  <button type="button" class="btn btn-success" onclick="confirmDelivery({{ $order->id }})">
+                  <button type="button" class="btn btn-success btn-lg" onclick="confirmDelivery({{ $order->id }})">
                     ✅ Confirm Delivery Received
                   </button>
                   <small class="d-block mt-2 text-muted">Click this button once you've received your order</small>

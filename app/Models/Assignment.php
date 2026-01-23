@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Assignment extends Model
 {
+    protected $table = 'assignemets'; // Match migration table name (with typo)
+    
     protected $fillable = [
         'order_id',
         'staff_id',

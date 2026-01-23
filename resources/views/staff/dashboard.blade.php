@@ -101,7 +101,7 @@
     <div class="col-md-4 mb-3">
       <div class="card bg-dark text-white">
         <div class="card-body text-center">
-          <h4 class="text-info">{{ auth()->user()->staffProfile->assignments->where('order.status', 'in_transit')->count() ?? 0 }}</h4>
+          <h4 class="text-info">{{ (auth()->user()->staffProfile && auth()->user()->staffProfile->assignments) ? auth()->user()->staffProfile->assignments->where('order.status', 'in_transit')->count() : 0 }}</h4>
           <p class="mb-0">In Transit</p>
         </div>
       </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\StaffProfile;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,14 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
         ]);
+
+        // Create StaffProfile for staff members
+        if ($validated['role'] === 'staff') {
+            StaffProfile::create([
+                'user_id' => $user->id,
+                'status' => 'available',
+            ]);
+        }
 
         event(new Registered($user));
 

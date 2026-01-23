@@ -30,6 +30,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('products') }}">Products</a>
                 </li>
+                @auth
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('my-orders') }}">Orders</a>
+                </li>
+                @endauth
                 <li class="nav-item">
                     <a class="nav-link position-relative" href="{{ route('cart') }}">
                         🛒 Cart
