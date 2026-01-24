@@ -45,6 +45,7 @@ EXPOSE 80
 # Runtime startup: artisan commands + start services
 CMD php artisan key:generate --force --no-interaction && \
     php artisan migrate --force --no-interaction && \
+    php artisan db:seed --force --no-interaction && \
     php artisan storage:link && \
     service nginx start && \
     php-fpm
