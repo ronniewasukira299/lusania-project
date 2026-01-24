@@ -21,48 +21,57 @@ class ProductSeeder extends Seeder
                 'name' => 'Classic Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Our signature classic fried chicken lusaniya',
+                'is_available' => true,
             ],
             [
                 'name' => 'Spicy Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'is_available' => true,
             ],
             [
                 'name' => 'Family Pack Lusaniya',
                 'price' => 50000,
                 'description' => 'Perfect for families - serves 4-5 people',
+                'is_available' => true,
             ],
             // Set 2
             [
                 'name' => 'Classic Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Our signature classic fried chicken lusaniya',
+                'is_available' => true,
             ],
             [
                 'name' => 'Spicy Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'is_available' => true,
             ],
             [
                 'name' => 'Family Pack Lusaniya',
                 'price' => 50000,
                 'description' => 'Perfect for families - serves 4-5 people',
+                'is_available' => true,
             ],
             // Set 3
             [
                 'name' => 'Classic Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Our signature classic fried chicken lusaniya',
+                'is_available' => true,
             ],
             [
                 'name' => 'Spicy Chicken Lusaniya',
                 'price' => 50000,
                 'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'is_available' => true,
             ],
             [
                 'name' => 'Family Pack Lusaniya',
                 'price' => 50000,
                 'description' => 'Perfect for families - serves 4-5 people',
+                'is_available' => true,
             ],
         ];
 
