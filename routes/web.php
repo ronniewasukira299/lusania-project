@@ -40,12 +40,7 @@ require __DIR__.'/auth.php';
 // Authenticated Routes
 // ================================
 Route::middleware('auth')->group(function () {
-    // Default Laravel dashboard
-    Route::get('/dashboard', fn() => view('dashboard', [
-        'orders' => Auth::user()->role === 'admin' ? App\Models\Order::latest()->get() : collect()
-    ]))
-        ->middleware('verified')
-        ->name('dashboard');
+
 
     // Profile routes (Laravel default)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

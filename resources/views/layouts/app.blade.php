@@ -18,21 +18,24 @@
 </head>
 <body>
 
-<!-- Minimal navbar just for testing -->
+<!-- Responsive navbar with mobile hamburger menu -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url('/') }}">Caleb'S Chicken Lusania</a>
-        <div class="collapse navbar-collapse">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url('/') }}">🍗 Caleb's Chicken</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('home') }}">Home</a>
+                    <a class="nav-link" href="{{ route('home') }}">🏠 Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('products') }}">Products</a>
+                    <a class="nav-link" href="{{ route('products') }}">🍗 Products</a>
                 </li>
                 @auth
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('my-orders') }}">Orders</a>
+                    <a class="nav-link" href="{{ route('my-orders') }}">📦 Orders</a>
                 </li>
                 @endauth
                 <li class="nav-item">
@@ -41,8 +44,19 @@
                         <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
                     </a>
                 </li>
+                @auth
+                <li class="nav-item">
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="nav-link btn btn-link text-decoration-none text-white">🚪 Logout</button>
+                    </form>
+                </li>
+                @else
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('login') }}">🔐 Login</a>
+                </li>
+                @endauth
             </ul>
-        </div>
         </div>
     </div>
 </nav>
@@ -63,8 +77,12 @@
       <div class="col-md-4 mb-4">
         <h5 class="text-warning">Quick Links</h5>
         <ul class="list-unstyled">
-          <li><a href="{{ route('home') }}" class="text-white text-decoration-none">Home</a></li>
-          <li><a href="{{ route('products') }}" class="text-white text-decoration-none">Products</a></li>
+          <li><a href="{{ route('home') }}" class="text-white text-decoration-none">🏠 Home</a></li>
+          <li><a href="{{ route('products') }}" class="text-white text-decoration-none">🍗 Products</a></li>
+          @auth
+          <li><a href="{{ route('my-orders') }}" class="text-white text-decoration-none">📦 Orders</a></li>
+          <li><a href="{{ route('cart') }}" class="text-white text-decoration-none">🛒 Cart</a></li>
+          @endauth
         </ul>
       </div>
       <div class="col-md-4 mb-4">

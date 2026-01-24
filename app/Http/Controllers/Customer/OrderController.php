@@ -168,14 +168,17 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        if ($order->status !== 'in_transit') {
-            return response()->json(['success' => false, 'message' => 'Order not in transit'], 400);
+        // Allow confirmation from both 'in_transit' and 'delivered' states
+        if (!in_array($order->status, ['in_transit', 'delivered'])) {
+            return response()->json(['success' => false, 'message' => 'Order not ready for confirmation'], 400);
         }
 
-        $order->update(['status' => 'delivered']);
-
-        // Broadcast order delivered event
-        broadcast(new OrderDelivered($order));
+        // Only update if not already delivered
+        if ($order->status !== 'delivered') {
+            $order->update(['status' => 'delivered']);
+            // Broadcast order delivered event
+            broadcast(new OrderDelivered($order));
+        }
 
         return response()->json(['success' => true, 'message' => 'Thank you for confirming delivery!']);
     }

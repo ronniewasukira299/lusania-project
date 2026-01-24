@@ -1,0 +1,2749 @@
+================================================================================
+CALEB'S CHICKEN LUSANIA - BACKEND DEVELOPMENT CURRICULUM
+================================================================================
+A Complete Learning Journey from Laravel Setup to Full-Stack Delivery System
+Author: Built on AI-Assisted Prompting & Computer Science Foundation
+Date: January 2026
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. PREREQUISITES & ENVIRONMENT SETUP
+   1.1 - Installing Laravel 12.0 Framework
+   1.2 - Setting Up Local Development Environment (XAMPP/MySQL)
+   1.3 - Configuring Development Server (Port 8000)
+   1.4 - Network Configuration for Multi-Device Access
+
+2. PROJECT ARCHITECTURE & PLANNING
+   2.1 - Understanding the Delivery System Requirements
+   2.2 - Database Schema Design (Orders, Products, Users, Assignments)
+   2.3 - Role-Based Authorization (Customer, Staff, Admin)
+   2.4 - RESTful API Design Patterns
+
+3. DATABASE DESIGN & MIGRATIONS
+   3.1 - User Table Migration with Role Column
+   3.2 - Products Table (Menu Items)
+   3.3 - Orders Table (Main Transaction Records)
+   3.4 - OrderItems Table (Junction Table for Orders)
+   3.5 - StaffProfiles Table (Staff-Specific Data)
+   3.6 - Assignments Table (Order-Staff Mapping)
+
+4. ELOQUENT MODELS & RELATIONSHIPS
+   4.1 - Setting Up Model Relationships (HasMany, BelongsTo, HasOne)
+   4.2 - User Model with Role-Based Methods
+   4.3 - Order Model with Complex Relationships
+   4.4 - Staff Assignment Model with Polymorphic Relationships
+
+5. AUTHENTICATION & AUTHORIZATION
+   5.1 - Laravel Breeze Authentication Setup
+   5.2 - Custom Role-Based Middleware
+   5.3 - Secret Registration Routes for Staff/Admin
+   5.4 - Protecting Routes with Middleware
+
+6. BUILDING THE BACKEND LOGIC
+   6.1 - Creating Order Placement Service
+   6.2 - Staff Assignment Algorithm (Random Selection from Available Staff)
+   6.3 - Order Status Lifecycle Management
+   6.4 - Transaction-Based Database Operations (Preventing Race Conditions)
+
+7. REAL-TIME NOTIFICATIONS WITH PUSHER
+   7.1 - Configuring Broadcasting Events
+   7.2 - Creating OrderAssigned, OrderInTransit, OrderDelivered Events
+   7.3 - Private Channel Authorization
+   7.4 - Client-Side Pusher Integration
+
+8. BUILDING API CONTROLLERS
+   8.1 - OrderController (Create, Track, Update Orders)
+   8.2 - Extracting Helper Methods (Single Responsibility)
+   8.3 - Form Validation with Request Classes
+   8.4 - Error Handling & Database Transactions
+
+9. FRONTEND INTEGRATION (HTML/CSS/JS CONVERSION)
+   9.1 - Converting Static HTML to Blade Templates
+   9.2 - Integrating Bootstrap 5 for Responsive Design
+   9.3 - Adding Cart Functionality with LocalStorage
+   9.4 - Form Handling with CSRF Protection
+
+10. BUILDING ROLE-BASED DASHBOARDS
+    10.1 - Customer Dashboard (View Orders & Status)
+    10.2 - Staff Dashboard (Manage Assigned Orders)
+    10.3 - Admin Dashboard (View Metrics & Analytics)
+
+11. REAL-TIME STATUS UPDATES
+    11.1 - Broadcasting Order Assignment Events
+    11.2 - Toast Notification System
+    11.3 - Reactive UI Updates (without full page reload)
+
+12. MOBILE & MULTI-DEVICE SUPPORT
+    12.1 - Responsive Navbar with Hamburger Menu
+    12.2 - Mobile-First CSS Design
+    12.3 - Server Network Configuration
+    12.4 - Accessing Application from Multiple Devices
+
+13. TESTING & DEBUGGING
+    13.1 - Testing Order Placement Flow
+    13.2 - Testing Staff Assignment Algorithm
+    13.3 - Testing Notifications & Real-Time Updates
+    13.4 - Cross-Device Testing
+
+14. DEPLOYMENT CONSIDERATIONS
+    14.1 - Environment Variables & Configuration
+    14.2 - Queue Configuration for Background Jobs
+    14.3 - Production-Ready Broadcasting Setup
+    14.4 - Database Indexing for Performance
+
+================================================================================
+SECTION 1: PREREQUISITES & ENVIRONMENT SETUP
+================================================================================
+
+1.1 INSTALLING LARAVEL 12.0 FRAMEWORK
+----------
+
+Why Laravel?
+- Modern, elegant PHP framework with built-in features
+- Excellent ORM (Eloquent) for database interactions
+- Built-in authentication system
+- Real-time capabilities through broadcasting
+- Routing system for clean URLs
+- Middleware for security and request filtering
+
+Installation Steps:
+
+$ composer create-project laravel/laravel lusania-project
+$ cd lusania-project
+
+Key Configurations:
+- .env file: Set APP_NAME, APP_DEBUG, APP_URL
+- config/app.php: Application timezone and locale
+- config/database.php: Database connection settings
+
+
+1.2 LOCAL DEVELOPMENT ENVIRONMENT (XAMPP/MySQL)
+----------
+
+XAMPP provides:
+- Apache Web Server
+- MySQL Database Server
+- PHP Interpreter
+- phpMyAdmin (Database Management UI)
+
+Setup:
+1. Download XAMPP from https://www.apachefriends.org/
+2. Install and start Apache & MySQL services
+3. Create database: lusania (via phpMyAdmin)
+4. Update .env: 
+   DB_HOST=127.0.0.1
+   DB_DATABASE=lusania
+   DB_USERNAME=root
+   DB_PASSWORD= (leave empty)
+
+
+1.3 DEVELOPMENT SERVER (PORT 8000)
+----------
+
+Laravel includes a built-in development server for testing locally:
+
+$ php artisan serve
+
+This starts the server on http://127.0.0.1:8000
+
+Key Points:
+- Use port 8000 (default) or any available port
+- localhost (127.0.0.1) is only accessible from this machine
+- For multi-device access, use machine IP instead
+
+
+1.4 NETWORK CONFIGURATION FOR MULTI-DEVICE ACCESS
+----------
+
+Problem: Application is only accessible from the PC that's running the server
+Solution: Bind server to all network interfaces (0.0.0.0)
+
+$ php artisan serve --host=0.0.0.0 --port=8000
+
+This makes the application accessible from other devices on the same network.
+
+Finding Your Machine's IP Address (Windows):
+$ ipconfig
+# Look for "IPv4 Address" under Wi-Fi adapter
+# Example: 192.168.100.67
+
+Accessing from Phone/Tablet:
+- Both devices must be on the SAME Wi-Fi network
+- Phone browser: http://192.168.100.67:8000
+- Works for both native apps and testing
+
+Architecture Visualization:
+┌─────────────────────────────────────────────┐
+│          Wi-Fi Network (192.168.100.x)      │
+├─────────────────────────────────────────────┤
+│                                             │
+│  PC (Server): 192.168.100.67:8000          │
+│  │                                          │
+│  └─ Laravel App (Backend + API)            │
+│     ├─ Database (MySQL on PC)              │
+│     └─ Handles all business logic          │
+│                                             │
+│  Phone (Client): 192.168.100.50            │
+│  │                                          │
+│  └─ Mobile Browser                         │
+│     ├─ HTML/CSS/JavaScript (Frontend)      │
+│     └─ Communicates with Server via HTTP   │
+│                                             │
+└─────────────────────────────────────────────┘
+
+================================================================================
+SECTION 2: PROJECT ARCHITECTURE & PLANNING
+================================================================================
+
+2.1 UNDERSTANDING THE DELIVERY SYSTEM REQUIREMENTS
+----------
+
+Problem: Build a food delivery system for "Caleb's Chicken Lusania"
+
+Key Features Needed:
+1. CUSTOMER FLOW
+   - Browse products (menu items)
+   - Add to cart
+   - Checkout & place order
+   - Track order status
+   - Confirm delivery receipt
+
+2. STAFF FLOW
+   - Receive assigned orders automatically
+   - View customer details & order items
+   - Start delivery (transit status)
+   - Mark order as delivered
+   - Set availability status
+
+3. ADMIN FLOW
+   - View all orders
+   - View revenue analytics
+   - Monitor staff activity
+   - Cancel orders if needed
+
+4. REAL-TIME NOTIFICATIONS
+   - Customer notified when order is assigned
+   - Customer notified when order is in transit
+   - Customer notified when order is delivered
+   - All notifications via toast popups
+
+
+2.2 DATABASE SCHEMA DESIGN
+----------
+
+Core Entities:
+
+USERS
+- id (Primary Key)
+- name, email, password
+- role (customer, staff, admin)
+- created_at, updated_at
+
+PRODUCTS
+- id (Primary Key)
+- name, description
+- price (in UGX currency)
+- is_available (boolean)
+
+ORDERS
+- id (Primary Key)
+- user_id (Foreign Key → USERS)
+- status (pending, assigned, in_transit, delivered)
+- total_amount (decimal)
+- delivery_address
+- created_at, updated_at
+
+ORDER_ITEMS (Joins ORDERS & PRODUCTS)
+- id (Primary Key)
+- order_id (Foreign Key → ORDERS)
+- product_id (Foreign Key → PRODUCTS)
+- quantity, price
+
+STAFF_PROFILES
+- id (Primary Key)
+- user_id (Foreign Key → USERS)
+- status (available, assigned, unavailable)
+
+ASSIGNMENTS (Joins ORDERS & USERS)
+- id (Primary Key)
+- order_id (Foreign Key → ORDERS)
+- staff_id (Foreign Key → USERS)
+- created_at, updated_at
+
+
+2.3 ROLE-BASED AUTHORIZATION
+----------
+
+Three User Roles with Distinct Permissions:
+
+CUSTOMER
+├─ Can place orders
+├─ Can view own orders only
+├─ Can confirm delivery receipt
+└─ Receives notifications about order status
+
+STAFF
+├─ Cannot create orders
+├─ Can view assigned orders only
+├─ Can start delivery (in_transit)
+├─ Can mark order delivered
+├─ Can toggle availability
+└─ Assigned orders automatically (no action needed)
+
+ADMIN
+├─ Can view ALL orders
+├─ Can view analytics/metrics
+├─ Can cancel orders
+└─ Can access admin dashboard
+
+Implementation:
+- Middleware in routes/web.php filters by role
+- Each role has separate routes and dashboards
+- Database checks verify authorization (no trusting frontend)
+
+
+2.4 RESTful API DESIGN PATTERNS
+----------
+
+We're not building a pure API, but following REST conventions:
+
+POST /orders
+- Customer creates order
+- Request body: items[], delivery_address
+- Response: 201 Created + order_id
+
+POST /orders/{order}/start-journey
+- Staff starts delivery
+- Response: 200 OK + status updated
+
+POST /orders/{order}/mark-delivered
+- Staff marks as delivered
+- Response: 200 OK + event broadcasted
+
+POST /orders/{order}/customer-confirm-delivery
+- Customer confirms receipt
+- Response: 200 OK + order complete
+
+GET /orders
+- Customers see own orders
+- Admins see all orders
+- Staff see assigned orders only
+
+================================================================================
+SECTION 3: DATABASE DESIGN & MIGRATIONS
+================================================================================
+
+Understanding Migrations:
+- Laravel's way of version-controlling database schema
+- Created in database/migrations/ directory
+- Numbered by timestamp (2026_01_10_070311_create_orders_table.php)
+- Can be rolled back if something goes wrong
+
+Command:
+$ php artisan migrate
+
+3.1 USER TABLE MIGRATION
+----------
+
+File: database/migrations/0001_01_01_000000_create_users_table.php
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    $table->string('password');
+    $table->enum('role', ['customer', 'staff', 'admin'])->default('customer');
+    $table->rememberToken();
+    $table->timestamps();
+});
+
+Key Points:
+- role column determines user type
+- email is unique (no duplicates)
+- password is hashed (never stored in plain text)
+- timestamps auto-record created_at & updated_at
+
+
+3.2 PRODUCTS TABLE MIGRATION
+----------
+
+File: database/migrations/2026_01_10_065621_create_products_table.php
+
+Schema::create('products', function (Blueprint $table) {
+    $table->id();
+    $table->string('name'); // e.g., "Chicken Wings"
+    $table->text('description')->nullable();
+    $table->decimal('price', 10, 2); // e.g., 15000.00 UGX
+    $table->boolean('is_available')->default(true);
+    $table->timestamps();
+});
+
+Price Format:
+- Uses DECIMAL (10, 2) for currency precision
+- Prevents floating-point arithmetic errors
+- Stores prices like: 15000.00, 50000.00
+
+
+3.3 ORDERS TABLE MIGRATION
+----------
+
+File: database/migrations/2026_01_10_070311_create_orders_table.php
+
+Schema::create('orders', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->enum('status', [
+        'pending',
+        'assigned',
+        'in_transit',
+        'delivered',
+    ])->default('pending');
+    $table->decimal('total_amount', 10, 2)->default(0);
+    $table->string('delivery_address');
+    $table->string('payment_method')->default('cash_on_delivery');
+    $table->timestamps();
+});
+
+Foreign Key Explanation:
+- user_id references users.id
+- cascadeOnDelete: if user deleted, their orders deleted too
+- This maintains referential integrity
+
+Status Lifecycle:
+pending → assigned → in_transit → delivered
+   ↓
+(stays pending if no staff available)
+
+
+3.4 ORDER_ITEMS TABLE MIGRATION
+----------
+
+File: database/migrations/2026_01_10_072034_create_order_items_table.php
+
+Schema::create('order_items', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+    $table->integer('quantity');
+    $table->decimal('price', 10, 2); // Price at time of purchase
+    $table->timestamps();
+});
+
+Purpose:
+- Junction table (many-to-many relationship)
+- Links orders to products
+- Stores product price at time of purchase (important for history)
+
+Example:
+Order #5 contains:
+- OrderItem 1: Product 1 (Chicken Wings) × 2 @ 15000.00 each
+- OrderItem 2: Product 3 (Combo Pack) × 1 @ 50000.00
+
+
+3.5 STAFF_PROFILES TABLE MIGRATION
+----------
+
+File: database/migrations/2026_01_10_072607_create_staff_profiles_table.php
+
+Schema::create('staff_profiles', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->enum('status', ['available', 'assigned', 'unavailable'])
+        ->default('available');
+    $table->timestamps();
+});
+
+Purpose:
+- Extends users table with staff-specific data
+- One-to-one relationship: each user has one staff_profile
+- Status tracks assignment availability
+
+Status Meanings:
+- available: Can receive new order assignments
+- assigned: Currently handling an order
+- unavailable: Manually disabled by staff
+
+
+3.6 ASSIGNMENTS TABLE MIGRATION
+----------
+
+File: database/migrations/2026_01_10_073138_create_assignments_table.php
+
+Schema::create('assignemets', function (Blueprint $table) { // Note: typo exists
+    $table->id();
+    $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('staff_id')->constrained('users')->cascadeOnDelete();
+    $table->timestamps();
+    $table->unique(['order_id', 'staff_id']); // One staff per order
+});
+
+Purpose:
+- Links orders to the staff member assigned
+- Prevents one staff being assigned multiple times to same order
+
+Why Unique Constraint:
+- An order can only have ONE assigned staff
+- unique(['order_id', 'staff_id']) prevents duplicates
+
+
+Running All Migrations:
+$ php artisan migrate
+
+This creates all tables in the correct order (dependencies first).
+
+================================================================================
+SECTION 4: ELOQUENT MODELS & RELATIONSHIPS
+================================================================================
+
+Eloquent = Laravel's Object-Relational Mapping (ORM)
+Converts database records into PHP objects
+Makes database queries readable and powerful
+
+4.1 UNDERSTANDING MODEL RELATIONSHIPS
+----------
+
+Types of Relationships:
+
+HasMany: Parent has multiple children
+Example: User has many Orders
+$user->orders() → returns all orders of that user
+
+BelongsTo: Child belongs to parent
+Example: Order belongs to User
+$order->user() → returns the customer who placed order
+
+HasOne: Parent has exactly one child
+Example: User has one StaffProfile (for staff users)
+$user->staffProfile() → returns staff profile if exists
+
+BelongsToMany: Many to Many through junction table
+Example: Order has many Products (through order_items)
+$order->products() → returns all products in that order
+
+
+4.2 USER MODEL WITH ROLE-BASED METHODS
+----------
+
+File: app/Models/User.php
+
+namespace App\Models;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    protected $fillable = ['name', 'email', 'password', 'role'];
+    protected $hidden = ['password', 'remember_token'];
+    
+    // Relationships
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id');
+    }
+    
+    public function staffProfile()
+    {
+        return $this->hasOne(StaffProfile::class);
+    }
+    
+    // Role-checking methods
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+    
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+}
+
+Usage:
+$user = User::find(1);
+$user->orders; // Get all orders
+$user->isAdmin(); // Check if admin
+auth()->user()->orders()->latest()->get(); // Get user's recent orders
+
+
+4.3 ORDER MODEL WITH COMPLEX RELATIONSHIPS
+----------
+
+File: app/Models/Order.php
+
+class Order extends Model
+{
+    protected $fillable = ['user_id', 'total_amount', 'delivery_address', 'status'];
+    protected $casts = ['total_amount' => 'decimal:2'];
+    
+    // Relationships
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+    
+    public function assignment()
+    {
+        return $this->hasOne(Assignment::class);
+    }
+    
+    // Accessing through relationships (query optimization)
+    public function assignedStaff()
+    {
+        return $this->assignment->staff ?? null;
+    }
+}
+
+Usage:
+$order = Order::find(5);
+$order->user->name; // Get customer name
+$order->items; // Get all items in order
+$order->assignment->staff->name; // Get assigned staff name
+$order->status; // pending, assigned, in_transit, delivered
+
+
+4.4 STAFF ASSIGNMENT MODEL
+----------
+
+File: app/Models/Assignment.php
+
+class Assignment extends Model
+{
+    protected $table = 'assignemets'; // Match migration table name
+    protected $fillable = ['order_id', 'staff_id'];
+    
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+    
+    public function staff()
+    {
+        return $this->belongsTo(User::class, 'staff_id');
+    }
+}
+
+Usage:
+$assignment = Assignment::find(1);
+$assignment->order; // The order being delivered
+$assignment->staff; // The staff member assigned
+$assignment->staff->staffProfile->status; // Check if staff available
+
+================================================================================
+SECTION 5: AUTHENTICATION & AUTHORIZATION
+================================================================================
+
+Authentication = Verifying user identity (login)
+Authorization = Checking user permissions (what they can do)
+
+5.1 LARAVEL BREEZE AUTHENTICATION
+----------
+
+Laravel Breeze provides:
+- Login/Register forms
+- Password reset functionality
+- Email verification
+- CSRF protection (prevents cross-site attacks)
+
+Installation:
+$ composer require laravel/breeze --dev
+$ php artisan breeze:install
+$ npm install && npm run dev
+
+This creates:
+- Authentication routes in routes/auth.php
+- Login view (resources/views/auth/login.blade.php)
+- Register view (resources/views/auth/register.blade.php)
+- DatabaseUserProvider (credentials validation)
+
+Key Files Created:
+- app/Http/Controllers/Auth/RegisteredUserController.php
+- app/Http/Controllers/Auth/AuthenticatedSessionController.php
+- app/Http/Middleware/Authenticate.php
+- resources/views/auth/login.blade.php
+
+
+5.2 CUSTOM ROLE-BASED MIDDLEWARE
+----------
+
+Middleware = Filter for HTTP requests
+Runs before reaching controller
+
+File: app/Http/Middleware/EnsureUserRole.php
+
+namespace App\Http\Middleware;
+
+class EnsureUserRole
+{
+    public function handle($request, Closure $next, ...$roles)
+    {
+        if (in_array(auth()->user()->role, $roles)) {
+            return $next($request);
+        }
+        
+        abort(403, 'Unauthorized');
+    }
+}
+
+Registration in app/Http/Kernel.php:
+protected $routeMiddleware = [
+    'role' => \App\Http\Middleware\EnsureUserRole::class,
+];
+
+Usage in routes:
+Route::middleware('role:admin')->get('/admin', ...);
+Route::middleware('role:staff')->get('/staff/dashboard', ...);
+
+
+5.3 SECRET REGISTRATION ROUTES FOR STAFF/ADMIN
+----------
+
+Problem: Don't want random people registering as staff/admin
+
+Solution: Hidden registration URLs only admins know
+
+File: routes/web.php
+
+Route::get('/secret-staff-register', fn() => view('auth.register', ['role' => 'staff']));
+Route::get('/secret-admin-register', fn() => view('auth.register', ['role' => 'admin']));
+
+Flow:
+1. Admin goes to /secret-staff-register
+2. Gets pre-filled registration form with role='staff'
+3. RegisteredUserController stores role in database
+
+Implementation in RegisteredUserController:
+
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'username' => ['required', 'string', 'unique:users,name'],
+        'email' => ['required', 'email', 'unique:users'],
+        'password' => ['required', 'confirmed'],
+        'role' => ['required', 'in:customer,staff,admin'],
+    ]);
+    
+    $user = User::create([
+        'name' => $validated['username'],
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']),
+        'role' => $validated['role'],
+    ]);
+    
+    // Create StaffProfile if registering as staff
+    if ($validated['role'] === 'staff') {
+        StaffProfile::create([
+            'user_id' => $user->id,
+            'status' => 'available',
+        ]);
+    }
+    
+    return redirect()->route($validated['role'] . '.dashboard');
+}
+
+
+5.4 PROTECTING ROUTES WITH MIDDLEWARE
+----------
+
+File: routes/web.php
+
+Example 1: Protect entire route group
+Route::middleware('auth')->group(function () {
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+});
+
+Only authenticated users can access these routes.
+
+Example 2: Protect by role
+Route::middleware('auth', 'role:staff')->get('/staff/dashboard', ...);
+
+Only authenticated users with role='staff' can access.
+
+Example 3: Multiple roles allowed
+Route::middleware('auth', 'role:admin,staff')->get('/orders/all', ...);
+
+Both admins and staff can access.
+
+Example 4: Chain middleware with auth guards
+Route::post('/logout', function () {
+    Auth::logout();
+    return redirect('/login');
+});
+
+================================================================================
+SECTION 6: BUILDING THE BACKEND LOGIC
+================================================================================
+
+6.1 ORDER PLACEMENT SERVICE
+----------
+
+Purpose: Handle complex order creation with multiple validations
+
+File: app/Http/Controllers/Customer/OrderController.php
+
+public function store(Request $request)
+{
+    // Validate input
+    $validated = $request->validate([
+        'items' => ['required', 'array'],
+        'items.*.product_id' => ['required', 'exists:products,id'],
+        'items.*.quantity' => ['required', 'integer', 'min:1'],
+        'delivery_address' => ['required', 'string'],
+    ]);
+    
+    // Parse and validate items
+    $items = $this->validateAndParseItems($validated['items']);
+    
+    if (!$items) {
+        return redirect()->back()->with('error', 'Invalid items');
+    }
+    
+    // Create order within transaction
+    $order = $this->createOrder($validated, $items);
+    
+    // Assign staff automatically
+    app(StaffAssignmentService::class)->assign($order);
+    
+    // Broadcast event to notify customers/staff/admin
+    broadcast(new OrderAssigned($order));
+    
+    return redirect(route('success'))->with('success', 'Order placed!');
+}
+
+private function validateAndParseItems(array $itemIds): array
+{
+    $items = [];
+    foreach ($itemIds as $item) {
+        $product = Product::find($item['product_id']);
+        if (!$product || !$product->is_available) {
+            return false;
+        }
+        $items[] = [
+            'product_id' => $product->id,
+            'quantity' => $item['quantity'],
+            'price' => $product->price,
+        ];
+    }
+    return $items;
+}
+
+private function createOrder(array $validated, array $items): Order
+{
+    return DB::transaction(function () use ($validated, $items) {
+        // Calculate total
+        $total = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $items));
+        
+        // Create order
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'total_amount' => $total,
+            'delivery_address' => $validated['delivery_address'],
+            'status' => 'pending',
+        ]);
+        
+        // Create order items
+        foreach ($items as $item) {
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ]);
+        }
+        
+        return $order;
+    });
+}
+
+Key Pattern: DB::transaction()
+- Ensures all database operations succeed or all fail
+- If any operation fails, automatic rollback
+- Prevents data inconsistency
+
+
+6.2 STAFF ASSIGNMENT ALGORITHM
+----------
+
+Problem: Multiple staff available, which one gets the order?
+
+Solution: Random selection from all available staff
+
+File: app/Services/StaffAssignmentService.php
+
+public function assign(Order $order): bool
+{
+    return DB::transaction(function () use ($order) {
+        // Early return if order not pending
+        if ($order->status !== 'pending') {
+            return false;
+        }
+        
+        // Find all available staff with pessimistic locking
+        // lockForUpdate() prevents another request from assigning same staff
+        $availableStaff = StaffProfile::where('status', 'available')
+            ->lockForUpdate()
+            ->get();
+        
+        if ($availableStaff->isEmpty()) {
+            // No staff available, order stays pending
+            return false;
+        }
+        
+        // Pick one staff randomly from available ones
+        // Ensures fair distribution if multiple staff available
+        $selectedStaffProfile = $availableStaff->random();
+        
+        // Create assignment record
+        Assignment::create([
+            'order_id' => $order->id,
+            'staff_id' => $selectedStaffProfile->user_id,
+        ]);
+        
+        // Update staff status
+        $selectedStaffProfile->update(['status' => 'assigned']);
+        
+        // Update order status
+        $order->update(['status' => 'assigned']);
+        
+        return true;
+    });
+}
+
+Key Concepts:
+1. Pessimistic Locking (lockForUpdate())
+   - Prevents race condition when multiple orders arrive simultaneously
+   - Only one request can lock a staff member at a time
+   - Second request waits for first to complete
+
+2. Random Selection ($availableStaff->random())
+   - If 3 staff available, each has 33% chance
+   - Fair distribution across team
+   - No staff always gets assignments
+
+3. Automatic Assignment (no UI needed)
+   - Works even if staff dashboard not open
+   - Background operation after order placement
+   - Staff notified instantly when online
+
+
+6.3 ORDER STATUS LIFECYCLE MANAGEMENT
+----------
+
+Lifecycle Flow:
+
+pending (initial state)
+   ↓ (staff available, assigned automatically)
+assigned (staff assigned, waiting for start)
+   ↓ (staff clicks "Start Journey")
+in_transit (order being delivered)
+   ↓ (staff clicks "Mark Delivered")
+delivered (delivered, waiting for confirmation)
+   ↓ (customer confirms receipt)
+confirmed (order complete)
+
+Implementation:
+
+// File: app/Http/Controllers/Customer/OrderController.php
+
+// Start delivery
+public function startJourney(Order $order)
+{
+    $order->update(['status' => 'in_transit']);
+    broadcast(new OrderInTransit($order));
+    return redirect()->back();
+}
+
+// Mark as delivered
+public function markDelivered(Order $order)
+{
+    $order->update(['status' => 'delivered']);
+    
+    // Staff becomes available again
+    auth()->user()->staffProfile->update(['status' => 'available']);
+    
+    broadcast(new OrderDelivered($order));
+    return redirect()->back();
+}
+
+// Customer confirms delivery
+public function customerConfirmDelivery(Order $order)
+{
+    if ($order->status !== 'delivered') {
+        return redirect()->back()->with('error', 'Invalid action');
+    }
+    
+    $order->update(['status' => 'confirmed']);
+    
+    // Staff status already updated to available when marking delivered
+    
+    return redirect()->back()->with('success', 'Thank you for your order!');
+}
+
+Database Updates:
+orders.status = 'in_transit' (string)
+staff_profiles.status = 'available' (string)
+
+
+6.4 TRANSACTION-BASED DATABASE OPERATIONS
+----------
+
+Why Transactions Matter:
+
+Scenario: Create order and items
+Without transaction:
+- Create order (success)
+- Create items (fails due to missing product)
+- Result: Order exists but with no items (data corruption)
+
+With transaction:
+- Create order (staging)
+- Create items (staging)
+- Both succeed → commit to database
+- Any fail → rollback everything
+
+Implementation:
+
+return DB::transaction(function () {
+    $order = Order::create([...]);
+    
+    foreach ($items as $item) {
+        OrderItem::create($item); // If fails here, order creation rolls back
+    }
+    
+    return $order;
+});
+
+Laravel's DB::transaction():
+- Wraps operations in SQL BEGIN/COMMIT
+- If exception thrown, automatic ROLLBACK
+- Prevents data inconsistency
+- Critical for multi-step operations
+
+Pessimistic Locking (for concurrency):
+
+$staff = StaffProfile::lockForUpdate()->first();
+// Only this request can modify $staff
+// Other requests wait until lock released
+
+Optimistic Locking Alternative:
+$order = Order::find(1);
+// Check if modified since we loaded
+if ($order->updated_at !== $loadedTime) {
+    // Someone else modified it, abort
+}
+
+================================================================================
+SECTION 7: REAL-TIME NOTIFICATIONS WITH PUSHER
+================================================================================
+
+Problem: Customer orders placed, then waits indefinitely without status updates
+Solution: Real-time notifications via WebSockets
+
+Pusher = WebSocket service for real-time communication
+- Customer browser stays connected to Pusher
+- When server broadcasts event, customer sees instant notification
+- Works cross-device (multiple tabs, phones, etc.)
+
+7.1 CONFIGURING BROADCASTING EVENTS
+----------
+
+File: config/broadcasting.php
+
+'default' => env('BROADCAST_DRIVER', 'pusher'),
+
+'connections' => [
+    'pusher' => [
+        'driver' => 'pusher',
+        'key' => env('PUSHER_APP_KEY'),
+        'secret' => env('PUSHER_APP_SECRET'),
+        'app_id' => env('PUSHER_APP_ID'),
+        'options' => [
+            'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
+            'encrypted' => true,
+        ],
+    ],
+],
+
+Set in .env (from Pusher account):
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=your_app_id
+PUSHER_APP_KEY=your_app_key
+PUSHER_APP_SECRET=your_app_secret
+PUSHER_APP_CLUSTER=mt1
+
+
+7.2 CREATING BROADCASTING EVENTS
+----------
+
+File: app/Events/OrderAssigned.php
+
+namespace App\Events;
+
+use App\Models\Order;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class OrderAssigned implements ShouldBroadcast
+{
+    public function __construct(public Order $order) {}
+    
+    public function broadcastOn(): array
+    {
+        return [
+            // Notify customer
+            new PrivateChannel("orders.customer.{$this->order->user_id}"),
+            // Notify assigned staff
+            new PrivateChannel("orders.staff.{$this->order->assignment->staff_id}"),
+            // Notify admin
+            new PrivateChannel('orders.admin'),
+            // Notify about this specific order
+            new PrivateChannel("orders.{$this->order->id}"),
+        ];
+    }
+    
+    public function broadcastAs(): string
+    {
+        return 'order.assigned';
+    }
+    
+    public function broadcastWith(): array
+    {
+        return [
+            'order_id' => $this->order->id,
+            'status' => $this->order->status,
+            'staff_name' => $this->order->assignment->staff->name,
+            'message' => "Order #{$this->order->id} assigned to {$this->order->assignment->staff->name}",
+        ];
+    }
+}
+
+Similar Events:
+- OrderInTransit (fires when staff starts delivery)
+- OrderDelivered (fires when staff marks delivered)
+
+Broadcasting Flow:
+1. Order placed (pending status)
+2. StaffAssignmentService assigns staff
+3. broadcast(new OrderAssigned($order)) fires
+4. Event sent to Pusher
+5. Pusher notifies subscribed clients
+6. Customer browser receives notification
+7. JavaScript displays toast popup
+
+
+7.3 PRIVATE CHANNEL AUTHORIZATION
+----------
+
+Problem: Anyone could subscribe to any customer's orders
+Solution: Private channels with authorization
+
+File: routes/channels.php
+
+Broadcast::channel('orders.customer.{customerId}', function ($user, $customerId) {
+    return (int) $user->id === (int) $customerId;
+});
+
+Broadcast::channel('orders.staff.{staffId}', function ($user, $staffId) {
+    return (int) $user->id === (int) $staffId && $user->isStaff();
+});
+
+Broadcast::channel('orders.admin', function ($user) {
+    return $user->isAdmin();
+});
+
+Broadcast::channel('orders.{orderId}', function ($user, $orderId) {
+    $order = Order::find($orderId);
+    return $user->id === $order->user_id || 
+           ($order->assignment?->staff_id === $user->id) ||
+           $user->isAdmin();
+});
+
+Authorization Logic:
+- orders.customer.5: Only user with id=5 can subscribe
+- orders.staff.3: Only user id=3 who is staff can subscribe
+- orders.admin: Only admins can subscribe
+- orders.12: Customer (placed order), assigned staff, or admin
+
+
+7.4 CLIENT-SIDE PUSHER INTEGRATION
+----------
+
+File: resources/js/pusher-notifications.js
+
+const PusherNotifications = {
+    init(key, cluster) {
+        // Initialize Pusher connection
+        this.pusher = new Pusher(key, { cluster });
+        
+        // Subscribe to customer's private channel
+        const userId = document.body.dataset.userId;
+        if (userId) {
+            this.subscribeToCustomerOrders(userId);
+        }
+    },
+    
+    subscribeToCustomerOrders(customerId) {
+        const channel = this.pusher.subscribe(`private-orders.customer.${customerId}`);
+        
+        channel.bind('order.assigned', (data) => {
+            this.showNotification(`✓ Order #${data.order_id} assigned to ${data.staff_name}`);
+            this.updateOrderStatus(data.order_id, 'assigned');
+        });
+        
+        channel.bind('order.in_transit', (data) => {
+            this.showNotification(`✓ Order #${data.order_id} is in transit!`);
+            this.updateOrderStatus(data.order_id, 'in_transit');
+        });
+        
+        channel.bind('order.delivered', (data) => {
+            this.showNotification(`✓ Order #${data.order_id} has been delivered!`);
+            this.updateOrderStatus(data.order_id, 'delivered');
+        });
+    },
+    
+    showNotification(message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 8000);
+    },
+    
+    updateOrderStatus(orderId, status) {
+        // Update UI without page reload
+        document.querySelector(`[data-order-id="${orderId}"] .status-badge`)
+            ?.textContent = status.toUpperCase();
+    }
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    PusherNotifications.init(
+        '{{ config("services.pusher.key") }}',
+        '{{ config("services.pusher.options.cluster") }}'
+    );
+});
+
+Usage in Blade:
+<script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+<script src="{{ asset('js/pusher-notifications.js') }}"></script>
+
+================================================================================
+SECTION 8: BUILDING API CONTROLLERS
+================================================================================
+
+Controllers = Business logic handlers
+Handle HTTP requests and return responses
+
+8.1 ORDER CONTROLLER
+----------
+
+File: app/Http/Controllers/Customer/OrderController.php
+
+namespace App\Http\Controllers\Customer;
+
+use App\Models\Order;
+use App\Events\OrderAssigned;
+use App\Services\StaffAssignmentService;
+
+class OrderController extends Controller
+{
+    // Create order
+    public function store(Request $request)
+    {
+        // Validate and create order
+        // Assign staff automatically
+        // Broadcast event
+    }
+    
+    // View orders
+    public function index()
+    {
+        if (auth()->user()->isAdmin()) {
+            return Order::latest()->paginate(20);
+        }
+        
+        return auth()->user()->orders()->latest()->paginate(20);
+    }
+    
+    // Start delivery (staff only)
+    public function startJourney(Order $order)
+    {
+        // Verify staff is assigned
+        // Update status to in_transit
+        // Broadcast event
+    }
+    
+    // Mark delivered (staff only)
+    public function markDelivered(Order $order)
+    {
+        // Verify staff is assigned
+        // Update status to delivered
+        // Release staff (mark available)
+    }
+    
+    // Confirm receipt (customer only)
+    public function customerConfirmDelivery(Order $order)
+    {
+        // Verify customer owns order
+        // Update status to confirmed
+    }
+    
+    // Cancel order (admin only)
+    public function cancel(Order $order)
+    {
+        // Verify admin
+        // Update status to cancelled
+    }
+}
+
+
+8.2 EXTRACTING HELPER METHODS
+----------
+
+Principle: Single Responsibility
+Each method should do one thing well
+
+Bad (God Method):
+public function store(Request $request)
+{
+    // 50 lines of code doing everything
+    // Hard to test, hard to reuse
+}
+
+Good (Extracted Methods):
+public function store(Request $request)
+{
+    $validated = $request->validate([...]);
+    $items = $this->validateAndParseItems($validated['items']);
+    $order = $this->createOrder($validated, $items);
+    app(StaffAssignmentService::class)->assign($order);
+    broadcast(new OrderAssigned($order));
+    return redirect(route('success'));
+}
+
+private function validateAndParseItems(array $items): array
+{
+    // Focused on item validation
+}
+
+private function createOrder(array $validated, array $items): Order
+{
+    // Focused on order creation
+}
+
+Benefits:
+- Each method is testable
+- Easy to understand
+- Reusable in other controllers
+- Follows DRY principle (Don't Repeat Yourself)
+
+
+8.3 FORM VALIDATION WITH REQUEST CLASSES
+----------
+
+File: app/Http/Requests/StoreOrderRequest.php
+
+namespace App\Http\Requests;
+
+class StoreOrderRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return auth()->user()->isCustomer();
+    }
+    
+    public function rules(): array
+    {
+        return [
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            'delivery_address' => ['required', 'string', 'min:5', 'max:500'],
+        ];
+    }
+    
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Please add items to your order',
+            'items.min' => 'Order must contain at least 1 item',
+            'delivery_address.required' => 'Delivery address is required',
+        ];
+    }
+}
+
+Usage in Controller:
+public function store(StoreOrderRequest $request)
+{
+    $validated = $request->validated(); // Already validated
+    // Process order...
+}
+
+Benefits:
+- Validation logic separated from controller
+- Reusable across multiple routes
+- Authorization check built-in
+- Custom error messages
+
+
+8.4 ERROR HANDLING & DATABASE TRANSACTIONS
+----------
+
+File: app/Http/Controllers/Customer/OrderController.php
+
+public function store(StoreOrderRequest $request)
+{
+    try {
+        return DB::transaction(function () use ($request) {
+            // All database operations here
+            
+            $items = $this->validateAndParseItems($request->items);
+            if (!$items) {
+                throw new Exception('Invalid items');
+            }
+            
+            $order = $this->createOrder($request->validated(), $items);
+            
+            if (!app(StaffAssignmentService::class)->assign($order)) {
+                // Order created but no staff available
+                // That's okay, order stays pending
+            }
+            
+            broadcast(new OrderAssigned($order));
+            
+            return redirect(route('success'));
+        });
+    } catch (Exception $e) {
+        Log::error('Order creation failed: ' . $e->getMessage());
+        return redirect()->back()
+            ->withErrors('Failed to place order. Please try again.')
+            ->withInput();
+    }
+}
+
+Key Points:
+1. Try-Catch wraps risky operations
+2. DB::transaction() rolls back on exception
+3. Log::error() records problem for debugging
+4. withErrors() and withInput() help user recover
+
+================================================================================
+SECTION 9: FRONTEND INTEGRATION
+================================================================================
+
+Frontend Provided: HTML, CSS, JavaScript (Bootstrap)
+Our Job: Convert to Laravel Blade + Integrate Backend
+
+9.1 CONVERTING HTML TO BLADE TEMPLATES
+----------
+
+HTML Template (provided):
+<div class="products">
+    <h1>Our Products</h1>
+    <div class="product">
+        <h3>Classic Chicken</h3>
+        <p>UGX 50000</p>
+        <button>Add to Cart</button>
+    </div>
+</div>
+
+Blade Template (dynamic):
+@extends('layouts.app')
+
+@section('content')
+<div class="products">
+    <h1>Our Products</h1>
+    
+    @forelse ($products as $product)
+        <div class="product">
+            <h3>{{ $product->name }}</h3>
+            <p>UGX {{ number_format($product->price) }}</p>
+            <button class="add-to-cart" data-id="{{ $product->id }}">
+                Add to Cart
+            </button>
+        </div>
+    @empty
+        <p>No products available</p>
+    @endforelse
+</div>
+@endsection
+
+Blade Syntax:
+- {{ $variable }} - Outputs escaped variable
+- @if condition @endif - Conditional blocks
+- @foreach $items @endforeach - Loops
+- @forelse $items @empty @endforelse - Loop with empty state
+- {{ route('name') }} - Generate URL
+- {{ asset('path') }} - Reference public files
+
+
+9.2 INTEGRATING BOOTSTRAP 5
+----------
+
+Bootstrap = CSS Framework for responsive design
+
+File: resources/views/layouts/app.blade.php
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url('/') }}">🍗 Caleb's Chicken</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('products') }}">🍗 Products</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container my-5">
+        @yield('content')
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+Bootstrap Classes:
+- container: Fixed-width container (responsive)
+- row: Grid row
+- col-md-4: Column (4 of 12 on medium+ screens)
+- btn btn-primary: Button styling
+- card: Card component
+- navbar: Navigation bar with responsive hamburger
+
+Responsive Design:
+- col-12: Full width on mobile
+- col-md-6: 50% on medium+ screens
+- col-lg-4: 33% on large+ screens
+Automatically adapts to screen size
+
+
+9.3 ADDING CART FUNCTIONALITY WITH LOCALSTORAGE
+----------
+
+JavaScript doesn't need backend for cart
+Uses browser's LocalStorage (persistent storage)
+
+File: resources/js/cart.js
+
+const cart = {
+    // Get cart from LocalStorage
+    getItems() {
+        const stored = localStorage.getItem('cart');
+        return stored ? JSON.parse(stored) : [];
+    },
+    
+    // Save cart to LocalStorage
+    saveItems(items) {
+        localStorage.setItem('cart', JSON.stringify(items));
+    },
+    
+    // Add item
+    addItem(productId, name, price, quantity = 1) {
+        const items = this.getItems();
+        const existing = items.find(i => i.product_id === productId);
+        
+        if (existing) {
+            existing.quantity += quantity;
+        } else {
+            items.push({ product_id: productId, name, price, quantity });
+        }
+        
+        this.saveItems(items);
+        this.updateCartCount();
+    },
+    
+    // Remove item
+    removeItem(productId) {
+        const items = this.getItems().filter(i => i.product_id !== productId);
+        this.saveItems(items);
+        this.updateCartCount();
+    },
+    
+    // Update cart count in navbar
+    updateCartCount() {
+        const count = this.getItems().reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').textContent = count;
+    },
+    
+    // Clear cart (after order placed)
+    clear() {
+        localStorage.removeItem('cart');
+        this.updateCartCount();
+    }
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    cart.updateCartCount();
+});
+
+// Button click handlers
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const product = {
+            id: this.dataset.id,
+            name: this.dataset.name,
+            price: parseFloat(this.dataset.price),
+        };
+        cart.addItem(product.id, product.name, product.price);
+    });
+});
+
+Flow:
+1. Customer clicks "Add to Cart"
+2. JavaScript adds to LocalStorage
+3. Cart count updates in navbar
+4. Customer proceeds to checkout
+5. POST /orders sends cart to backend
+6. Backend creates order and items
+7. LocalStorage cleared (cart.clear())
+
+
+9.4 CSRF PROTECTION
+----------
+
+Problem: Attackers could submit forms impersonating users
+Solution: CSRF tokens verify requests came from actual user
+
+Blade Template:
+<form method="POST" action="/orders">
+    @csrf
+    <!-- Form fields -->
+</form>
+
+Renders:
+<form method="POST" action="/orders">
+    <input type="hidden" name="_token" value="x7Jk9mP2...">
+    <!-- Form fields -->
+</form>
+
+How It Works:
+1. User visits form page
+2. Server generates unique token, stores in session
+3. Form includes hidden token field
+4. User submits form
+5. Server verifies token matches session
+6. If mismatch → 419 error (form tampering detected)
+
+AJAX Requests:
+// Add token to request header
+const headers = {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+};
+
+fetch('/orders', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+});
+
+Laravel Middleware automatically checks CSRF tokens
+No additional code needed in controller
+
+================================================================================
+SECTION 10: BUILDING ROLE-BASED DASHBOARDS
+================================================================================
+
+10.1 CUSTOMER DASHBOARD
+----------
+
+File: resources/views/orders.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="container my-5">
+    <h2 class="text-warning mb-4">📦 My Orders</h2>
+    
+    @forelse (auth()->user()->orders()->latest()->get() as $order)
+        <div class="card bg-dark text-white mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5>Order #{{ $order->id }}</h5>
+                <span class="badge bg-{{ $order->status === 'delivered' ? 'success' : 'warning' }}">
+                    {{ ucfirst($order->status) }}
+                </span>
+            </div>
+            
+            <div class="card-body">
+                <p><strong>Placed:</strong> {{ $order->created_at->format('M d, Y H:i') }}</p>
+                <p><strong>Address:</strong> {{ $order->delivery_address }}</p>
+                
+                <!-- Assigned Staff Info -->
+                @if($order->assignment)
+                    <div class="bg-secondary p-2 rounded">
+                        <p><strong>👨‍💼 Assigned to:</strong> {{ $order->assignment->staff->name }}</p>
+                        <p><strong>📞 Status:</strong> {{ ucfirst($order->assignment->staff->staffProfile->status) }}</p>
+                    </div>
+                @endif
+                
+                <!-- Order Items -->
+                <h6 class="mt-3">Items:</h6>
+                @foreach ($order->items as $item)
+                    <p>{{ $item->product->name }} × {{ $item->quantity }} = UGX {{ number_format($item->price * $item->quantity) }}</p>
+                @endforeach
+                
+                <h5>Total: UGX {{ number_format($order->total_amount) }}</h5>
+                
+                <!-- Status-Based Actions -->
+                @if ($order->status === 'in_transit')
+                    <button class="btn btn-success" onclick="confirmDelivery({{ $order->id }})">
+                        ✅ Confirm Delivery Received
+                    </button>
+                @elseif ($order->status === 'delivered')
+                    <div class="alert alert-success">
+                        ✓ Delivered! Thank you for your order.
+                    </div>
+                @endif
+            </div>
+        </div>
+    @empty
+        <p class="text-muted">No orders yet. <a href="{{ route('products') }}">Start shopping!</a></p>
+    @endforelse
+</div>
+
+<script>
+function confirmDelivery(orderId) {
+    fetch(`/orders/${orderId}/customer-confirm-delivery`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        },
+    })
+    .then(r => r.ok ? location.reload() : alert('Failed'))
+    .catch(e => alert('Error: ' + e));
+}
+</script>
+@endsection
+
+Display Features:
+- All customer's orders in reverse chronological order
+- Order details (date, address, items, total)
+- Assigned staff information (if available)
+- Status badge (pending, assigned, in_transit, delivered)
+- Confirmation button only when in_transit
+- Success message when delivered
+
+
+10.2 STAFF DASHBOARD
+----------
+
+File: resources/views/staff/dashboard.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="container my-5">
+    <h2 class="text-warning mb-4">👨‍💼 Staff Dashboard</h2>
+    
+    <!-- Availability Toggle -->
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <h5>Your Availability Status</h5>
+            <span id="status-badge" class="badge bg-{{ auth()->user()->staffProfile->status === 'available' ? 'success' : 'warning' }}">
+                {{ ucfirst(auth()->user()->staffProfile->status) }}
+            </span>
+            <button class="btn btn-primary ms-2" onclick="toggleAvailability()">
+                Change Status
+            </button>
+        </div>
+    </div>
+    
+    <!-- Assigned Orders -->
+    @if ($orders->count() > 0)
+        <h4 class="text-info mb-3">Assigned Orders</h4>
+        @foreach ($orders as $order)
+            <div class="card bg-dark text-white mb-3">
+                <div class="card-header">
+                    <h5>Order #{{ $order->id }}</h5>
+                    <p>
+                        <strong>Customer:</strong> {{ $order->user->name }}<br>
+                        <strong>Phone:</strong> {{ $order->user->email }}<br>
+                        <strong>Address:</strong> {{ $order->delivery_address }}
+                    </p>
+                </div>
+                
+                <div class="card-body">
+                    <h6>Items:</h6>
+                    @foreach ($order->items as $item)
+                        <p>{{ $item->product->name }} × {{ $item->quantity }} = UGX {{ number_format($item->price * $item->quantity) }}</p>
+                    @endforeach
+                    
+                    <h5>Total: UGX {{ number_format($order->total_amount) }}</h5>
+                    
+                    <!-- Action Buttons -->
+                    @if ($order->status === 'assigned')
+                        <form method="POST" action="{{ route('orders.start-journey', $order) }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">🚚 Start Journey</button>
+                        </form>
+                    @elseif ($order->status === 'in_transit')
+                        <button class="btn btn-success" onclick="markDelivered({{ $order->id }})">
+                            ✅ Mark Delivered
+                        </button>
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    @else
+        <p class="text-muted">No orders assigned to you. Set yourself as available.</p>
+    @endif
+    
+    <!-- Statistics -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h4 class="text-warning">{{ $orders->count() }}</h4>
+                    <p>Assigned Orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAvailability() {
+    fetch('/staff/toggle-availability', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(r => location.reload())
+    .catch(e => alert('Error: ' + e));
+}
+
+function markDelivered(orderId) {
+    if (confirm('Mark order as delivered?')) {
+        fetch(`/orders/${orderId}/mark-delivered`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            },
+        })
+        .then(r => r.ok ? location.reload() : alert('Failed'))
+        .catch(e => alert('Error: ' + e));
+    }
+}
+</script>
+@endsection
+
+Features:
+- Availability toggle (available/unavailable)
+- Only shows assigned orders
+- Customer contact information
+- Order items and total
+- Action buttons (Start Journey, Mark Delivered)
+- Statistics (assigned orders count)
+
+
+10.3 ADMIN DASHBOARD
+----------
+
+File: resources/views/admin/dashboard.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="container my-5">
+    <h2 class="text-warning mb-4">👨‍💼 Admin Dashboard</h2>
+    
+    <!-- Metrics -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h4 class="text-warning">{{ $orders->count() }}</h4>
+                    <p>Total Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h4 class="text-success">{{ $orders->where('status', 'delivered')->count() }}</h4>
+                    <p>Completed Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h4 class="text-info">UGX {{ number_format($orders->sum('total_amount')) }}</h4>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <h4 class="text-info mb-3">All Orders</h4>
+    <table class="table table-dark">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($orders as $order)
+                <tr>
+                    <td>#{{ $order->id }}</td>
+                    <td>{{ $order->user->name }}</td>
+                    <td>{{ $order->items->count() }}</td>
+                    <td>UGX {{ number_format($order->total_amount) }}</td>
+                    <td>
+                        <span class="badge bg-{{ $order->status === 'delivered' ? 'success' : 'warning' }}">
+                            {{ ucfirst($order->status) }}
+                        </span>
+                    </td>
+                    <td>{{ $order->assignment?->staff->name ?? 'Unassigned' }}</td>
+                    <td>
+                        @if ($order->status !== 'delivered' && $order->status !== 'cancelled')
+                            <form method="POST" action="{{ route('orders.cancel', $order) }}" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Cancel order?')">
+                                    ✗ Cancel
+                                </button>
+                            </form>
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" class="text-center">No orders</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+@endsection
+
+Features:
+- Key metrics (total orders, completed, revenue)
+- Orders table with all details
+- Status indicators
+- Staff assignment info
+- Cancel button for active orders
+- Sortable/filterable (with additional code)
+
+================================================================================
+SECTION 11: REAL-TIME STATUS UPDATES
+================================================================================
+
+11.1 BROADCASTING ORDER ASSIGNMENT EVENTS
+----------
+
+Flow Diagram:
+1. Customer places order (POST /orders)
+   ↓
+2. OrderController.store() executes
+   ├─ Create order (pending status)
+   ├─ Create order_items
+   ├─ Assign random available staff
+   └─ broadcast(new OrderAssigned($order))
+   ↓
+3. OrderAssigned event fires
+   ├─ Route: orders.customer.{customerId}
+   ├─ Route: orders.staff.{staffId}
+   ├─ Route: orders.admin
+   └─ Route: orders.{orderId}
+   ↓
+4. Pusher receives broadcast
+   ↓
+5. Connected browsers receive event
+   ├─ Customer browser (listening to orders.customer.5)
+   ├─ Staff browser (listening to orders.staff.3)
+   └─ Admin browser (listening to orders.admin)
+   ↓
+6. JavaScript event listener fires
+   ├─ showNotification(message)
+   └─ updateOrderStatus(orderId, 'assigned')
+   ↓
+7. UI Updates
+   ├─ Toast notification slides in
+   ├─ Order status badge changes
+   └─ Staff info appears
+
+Code:
+// app/Events/OrderAssigned.php
+public function broadcastOn(): array
+{
+    return [
+        new PrivateChannel("orders.customer.{$this->order->user_id}"),
+        new PrivateChannel("orders.staff.{$this->order->assignment->staff_id}"),
+        new PrivateChannel('orders.admin'),
+        new PrivateChannel("orders.{$this->order->id}"),
+    ];
+}
+
+// resources/js/pusher-notifications.js
+channel.bind('order.assigned', (data) => {
+    showNotification(`✓ Order #${data.order_id} assigned to ${data.staff_name}`);
+    updateOrderStatus(data.order_id, 'assigned');
+});
+
+
+11.2 TOAST NOTIFICATION SYSTEM
+----------
+
+Toast = Temporary message popup (auto-dismisses)
+
+Implementation:
+const showNotification = (message) => {
+    // Create element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    // Style
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Remove after 8 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 8000);
+};
+
+CSS Animations:
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+User Experience:
+- Slides in from right, stays visible 8 seconds
+- Auto-disappears (not intrusive)
+- Can click to dismiss early
+- Stacks if multiple notifications
+
+
+11.3 REACTIVE UI UPDATES (NO PAGE RELOAD)
+----------
+
+Without Real-Time:
+1. Customer places order
+2. Redirect to success page
+3. Customer manually refreshes orders page (every few seconds)
+4. Eventually sees status change
+
+With Real-Time:
+1. Customer places order
+2. Order appears in list (pending)
+3. Staff gets assigned automatically (instant notification)
+4. Customer sees assignment info appear (no refresh needed)
+5. Staff starts journey (instant status change to in_transit)
+6. Confirm button appears (no refresh needed)
+
+Implementation:
+// Listen for event
+channel.bind('order.assigned', (data) => {
+    // Find order element by ID
+    const orderElement = document.querySelector(`[data-order-id="${data.order_id}"]`);
+    
+    if (orderElement) {
+        // Update status badge
+        const statusBadge = orderElement.querySelector('.status-badge');
+        statusBadge.textContent = 'ASSIGNED';
+        
+        // Add staff info
+        const staffInfo = document.createElement('p');
+        staffInfo.innerHTML = `<strong>👨‍💼 Assigned to:</strong> ${data.staff_name}`;
+        orderElement.querySelector('.card-body').insertAdjacentElement('afterbegin', staffInfo);
+        
+        // Show/hide buttons appropriately
+        orderElement.querySelector('.pending-actions')?.style.display = 'none';
+        orderElement.querySelector('.assigned-actions')?.style.display = 'block';
+    }
+});
+
+Key Concept: Data Attributes
+HTML:
+<div class="order-card" data-order-id="5">...</div>
+
+JavaScript:
+const orderElement = document.querySelector('[data-order-id="5"]');
+
+Advantages:
+- No page reload
+- Instant user feedback
+- Multiple users see updates simultaneously
+- Smooth animations
+- Better user experience
+
+================================================================================
+SECTION 12: MOBILE & MULTI-DEVICE SUPPORT
+================================================================================
+
+12.1 RESPONSIVE NAVBAR WITH HAMBURGER MENU
+----------
+
+Desktop View:
+🍗 Caleb's Chicken     [Home] [Products] [Orders] [Cart] [Logout]
+
+Mobile View:
+🍗 Caleb's Chicken     [☰]
+(menu collapses)
+
+HTML Structure:
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container-fluid">
+        <!-- Brand/Logo -->
+        <a class="navbar-brand" href="{{ url('/') }}">🍗 Caleb's Chicken</a>
+        
+        <!-- Hamburger Toggle Button -->
+        <button class="navbar-toggler" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Collapsible Menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('home') }}">🏠 Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('products') }}">🍗 Products</a>
+                </li>
+                @auth
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('my-orders') }}">📦 Orders</a>
+                </li>
+                @endauth
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{{ route('cart') }}">
+                        🛒 Cart
+                        <span id="cart-count" class="badge rounded-pill bg-danger">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+Bootstrap Breakpoints:
+- xs: < 576px (phones)
+- sm: ≥ 576px (large phones)
+- md: ≥ 768px (tablets)
+- lg: ≥ 992px (desktops)
+- xl: ≥ 1200px (large desktops)
+
+navbar-expand-lg = Collapse on small/medium, expand on large+
+
+JavaScript (Bootstrap Bundle):
+- Handles hamburger clicks automatically
+- Collapses menu when link clicked
+- Smooth animations
+
+
+12.2 MOBILE-FIRST CSS DESIGN
+----------
+
+Principle: Design for mobile first, then add desktop enhancements
+
+Grid System (Bootstrap):
+<div class="row g-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <!-- Takes full width (col-12) on mobile -->
+        <!-- 50% on small screens (col-sm-6) -->
+        <!-- 33% on medium screens (col-md-4) -->
+        <!-- 25% on large+ screens (col-lg-3) -->
+    </div>
+</div>
+
+Examples:
+<!-- Full width on mobile, 2 columns on tablet, 3 on desktop -->
+<div class="col-12 col-md-6 col-lg-4">Product Card</div>
+
+<!-- Stack on mobile, side-by-side on tablet -->
+<div class="col-12 col-md-6">Address</div>
+<div class="col-12 col-md-6">Phone</div>
+
+Typography:
+<!-- Responsive font sizes -->
+<h1 class="h1">Heading</h1>
+<!-- Uses larger font on desktop, smaller on mobile -->
+
+Spacing:
+<div class="p-2 p-md-4 p-lg-5">
+    <!-- Padding: 2 on mobile, 4 on tablet, 5 on desktop -->
+</div>
+
+Images:
+<img src="product.jpg" class="img-fluid" alt="Product">
+<!-- Scales to fit container, never exceeds 100% width -->
+
+Forms:
+<form>
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <input type="text" class="form-control" placeholder="Email">
+        </div>
+        <div class="col-12 col-md-6">
+            <input type="text" class="form-control" placeholder="Phone">
+        </div>
+    </div>
+</form>
+
+Testing on Devices:
+1. Desktop Browser: Chrome DevTools (F12) → Device emulation
+2. Real Phone: http://192.168.100.67:8000 (same network)
+3. Tablet: Same URL on tablet device
+
+
+12.3 SERVER NETWORK CONFIGURATION
+----------
+
+Problem: Application only accessible from PC
+Solution: Bind server to all interfaces
+
+Default (localhost only):
+$ php artisan serve
+Server: http://127.0.0.1:8000
+Accessible: Only from this PC
+
+Network Accessible:
+$ php artisan serve --host=0.0.0.0 --port=8000
+Server: http://0.0.0.0:8000
+Accessible: From any device on network
+
+Architecture:
+┌─ PC (192.168.100.67)
+│  ├─ Server listens on all interfaces (0.0.0.0)
+│  ├─ Database (MySQL) on localhost:3306
+│  └─ Laravel App on :8000
+│
+├─ Phone (192.168.100.50) connected via Wi-Fi
+│  └─ Browser accesses http://192.168.100.67:8000
+│
+└─ Tablet (192.168.100.51) connected via Wi-Fi
+   └─ Browser accesses http://192.168.100.67:8000
+
+Configuration:
+Find PC IP:
+$ ipconfig
+# Look for IPv4 Address under Wi-Fi adapter
+# Example: 192.168.100.67
+
+Firewall:
+- Windows may block port 8000
+- Allow through Windows Defender Firewall
+- Settings → Firewall → Allow an app through firewall → php.exe
+
+
+12.4 ACCESSING APPLICATION FROM MULTIPLE DEVICES
+----------
+
+Prerequisites:
+1. Both devices on same Wi-Fi network
+2. PC running Laravel server (php artisan serve --host=0.0.0.0)
+3. Firewall allows port 8000
+
+From Phone:
+1. Open browser (Chrome, Safari, Firefox)
+2. Enter: http://192.168.100.67:8000
+3. Navigate and use normally
+4. Features work identically to desktop
+
+Testing Flow:
+PC (Staff) ← Wi-Fi Network → Phone (Customer)
+├─ PC: Staff dashboard (localhost:8000/staff)
+├─ Phone: Customer view (192.168.100.67:8000/products)
+└─ Real-time updates sync between devices
+
+Key Differences:
+- URL is device IP not localhost
+- Everything else identical
+- Database, API, sessions all shared
+- Notifications broadcast to both devices
+
+Example Test:
+1. On PC: Login as staff at localhost:8000/staff
+2. On Phone: Login as customer at 192.168.100.67:8000
+3. On Phone: Place an order
+4. On PC: Instantly see order in staff dashboard (refresh if needed)
+5. On PC: Click "Start Journey"
+6. On Phone: See notification + status update (if Pusher configured)
+
+================================================================================
+SECTION 13: TESTING & DEBUGGING
+================================================================================
+
+13.1 TESTING ORDER PLACEMENT FLOW
+----------
+
+Manual Testing Checklist:
+
+1. CREATE CUSTOMER ACCOUNT
+   ✓ Go to /register
+   ✓ Fill form (email, password)
+   ✓ Can login successfully
+   ✓ Dashboard appears (not error page)
+
+2. BROWSE PRODUCTS
+   ✓ Go to /products
+   ✓ See 3 chicken products
+   ✓ See prices in UGX
+   ✓ "Add to Cart" button works
+
+3. ADD TO CART
+   ✓ Click "Add to Cart"
+   ✓ Cart count increases (navbar)
+   ✓ LocalStorage stores items
+   ✓ Click multiple items, count increases
+
+4. VIEW CART
+   ✓ Go to /cart
+   ✓ See added items with quantities
+   ✓ Total amount calculated correctly
+   ✓ Can adjust quantities
+   ✓ Can remove items
+
+5. CHECKOUT
+   ✓ Click "Proceed to Checkout"
+   ✓ Pre-filled with customer info (email, address)
+   ✓ Can edit delivery address
+   ✓ Form validates on submit
+
+6. PLACE ORDER
+   ✓ Click "Place Order"
+   ✓ Redirect to success page
+   ✓ Cart cleared (count = 0)
+   ✓ Order appears in /orders
+
+7. VIEW ORDER
+   ✓ Go to /orders
+   ✓ See order with ID
+   ✓ Shows items and total
+   ✓ Shows status (pending initially)
+
+Debugging:
+```bash
+# Check database
+php artisan tinker
+> Order::count()
+> Order::latest()->first()
+> Order::find(1)->items
+```
+
+
+13.2 TESTING STAFF ASSIGNMENT ALGORITHM
+----------
+
+Test Scenario 1: Single staff available
+1. Create staff account (available)
+2. Place customer order
+3. Check: Order status = assigned
+4. Check: Assignment.staff_id = staff user_id
+5. Check: StaffProfile.status = assigned
+
+Test Scenario 2: Multiple staff available
+1. Create 3 staff accounts (all available)
+2. Place order 1 → assigned to staff A
+3. Place order 2 → assigned to staff B (or A or C, random)
+4. Place order 3 → assigned to staff C (or A or B)
+5. Verify: Orders distributed across staff
+
+Test Scenario 3: No staff available
+1. No staff created OR all staff set unavailable
+2. Place order
+3. Check: Order status = pending
+4. Check: No assignment created
+5. Order waits for staff to become available
+
+Test Scenario 4: Race condition (simultaneous orders)
+1. Place 2 orders almost simultaneously
+2. Check: Each assigned to different staff (if 2+ available)
+3. No duplicate assignments
+
+Code Test:
+```bash
+php artisan tinker
+> $staff1 = User::where('email', 'staff1@example.com')->first();
+> $staff1->staffProfile->update(['status' => 'available']);
+> $staff2 = User::where('email', 'staff2@example.com')->first();
+> $staff2->staffProfile->update(['status' => 'available']);
+
+# Simulate order placement
+> $service = app(\App\Services\StaffAssignmentService::class);
+> $order = Order::find(1);
+> $service->assign($order);
+> $order->assignment->staff->name
+```
+
+
+13.3 TESTING NOTIFICATIONS & REAL-TIME UPDATES
+----------
+
+Prerequisites:
+- Pusher account with credentials in .env
+- Two browser windows/tabs open
+- Customer logged in tab 1
+- Staff logged in tab 2
+
+Test Flow:
+1. Open Browser DevTools (F12) → Console
+2. Look for Pusher connection logs:
+   "ℹ Pusher : Establishing connection"
+   "✓ Connected to Pusher"
+
+3. Customer places order
+4. Check Console: Event received
+5. Staff dashboard: Order appears instantly (no refresh)
+6. Customer orders page: Status shows 'assigned'
+7. Staff clicks "Start Journey"
+8. Customer sees toast notification
+9. Status changes to 'in_transit'
+10. "Confirm Delivery" button appears
+
+If notifications not working:
+1. Check .env Pusher credentials
+2. Check browser console for errors
+3. Check Network tab → WS (WebSocket connections)
+4. Check Laravel logs: storage/logs/laravel.log
+5. Verify routes/channels.php authorization
+
+
+13.4 CROSS-DEVICE TESTING
+----------
+
+Setup:
+- PC: Admin and Staff logged in
+- Phone: Customer logged in
+- Same Wi-Fi network
+
+Test Customer → Staff → Admin Flow:
+1. Phone: Place order
+2. PC (Staff): See order appear instantly
+3. PC (Staff): Click "Start Journey"
+4. Phone: Get notification (if Pusher configured)
+5. Phone: See status change to in_transit
+6. PC (Staff): Click "Mark Delivered"
+7. Phone: Button appears "Confirm Delivery"
+8. Phone: Click button
+9. PC (Admin): Check admin dashboard
+10. Admin dashboard: Shows completed order in metrics
+
+Verify Responsiveness:
+- Phone: Hamburger menu works
+- Phone: All buttons clickable
+- Phone: Forms fill correctly
+- Phone: Tables readable (no overflow)
+- Phone: Images scale properly
+
+Network Monitoring:
+- Open DevTools Network tab
+- Perform actions
+- Check request times (<200ms ideal)
+- No errors (no 500, 403, 404)
+- Successful responses (200, 201)
+
+Performance:
+- Page load: <2 seconds
+- Form submission: <1 second
+- Order creation: <2 seconds
+- Status update: <1 second (instant with Pusher)
+
+================================================================================
+SECTION 14: DEPLOYMENT CONSIDERATIONS
+================================================================================
+
+14.1 ENVIRONMENT VARIABLES & CONFIGURATION
+----------
+
+.env File (Development):
+APP_NAME="Caleb's Chicken Lusania"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_HOST=127.0.0.1
+DB_DATABASE=lusania
+DB_USERNAME=root
+DB_PASSWORD=
+
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=123456
+PUSHER_APP_KEY=abc123def456
+PUSHER_APP_SECRET=xyz789
+PUSHER_APP_CLUSTER=mt1
+
+.env.production (Production - different values):
+APP_ENV=production
+APP_DEBUG=false
+DB_HOST=prod-db.example.com
+BROADCAST_DRIVER=pusher (or redis)
+
+Never Commit .env:
+- Contains secrets (database password, API keys)
+- Add to .gitignore
+- Share with team via separate secure channel
+
+Configuration Caching (Production):
+$ php artisan config:cache
+# Merges all config files into single cached file
+# Improves performance
+
+Clear Cache When Updating:
+$ php artisan config:clear
+
+
+14.2 QUEUE CONFIGURATION FOR BACKGROUND JOBS
+----------
+
+Problem: Some operations slow (sending emails, heavy processing)
+Solution: Queue jobs to run in background
+
+Example: Send order confirmation email
+
+Without Queue (blocks request):
+POST /orders → create order → send email (3 seconds) → response
+User waits 3 seconds
+
+With Queue:
+POST /orders → create order → queue job → response (instant)
+Job processes in background
+
+File: app/Jobs/SendOrderConfirmation.php
+
+class SendOrderConfirmation implements ShouldQueue
+{
+    public function handle()
+    {
+        $order = $this->order;
+        $order->user->notify(new OrderConfirmationNotification($order));
+    }
+}
+
+Usage:
+// Queue job instead of executing immediately
+dispatch(new SendOrderConfirmation($order));
+
+Queue Drivers:
+- sync: Execute immediately (development)
+- database: Store in database, run with php artisan queue:work
+- redis: High-performance queue
+- aws-sqs: Amazon SQS
+
+Development:
+$ php artisan queue:listen
+# Processes queued jobs as they arrive
+
+Production:
+# Keep queue:work running as daemon process (systemd/supervisor)
+
+
+14.3 PRODUCTION-READY BROADCASTING SETUP
+----------
+
+Development (Single Server):
+- Laravel Breeze with Pusher
+- Server at 127.0.0.1:8000
+- Works fine for testing
+
+Production (Multiple Servers):
+- Can't use localhost (each server different)
+- Use Pusher (cloud service) for real-time
+- Or use Redis for self-hosted option
+
+Production Configuration:
+1. Create Pusher account (https://pusher.com)
+2. Create app in dashboard
+3. Get credentials (app_id, key, secret, cluster)
+4. Set in .env.production
+5. Point app at: https://yourdomain.com
+
+HTTPS Required:
+- Production must use HTTPS
+- Pusher requires secure connections
+- Get SSL cert (Let's Encrypt free)
+
+Database Security:
+- Use strong passwords
+- Don't expose on public internet
+- Use connection pooling
+- Enable backups
+
+Session Security:
+- Set SESSION_DOMAIN=.yourdomain.com (all subdomains)
+- Set SESSION_SECURE=true (HTTPS only)
+- Set SESSION_HTTP_ONLY=true (prevent JavaScript access)
+
+
+14.4 DATABASE INDEXING FOR PERFORMANCE
+----------
+
+Problem: As orders grow, queries slow down
+Example: Finding all orders by customer (SELECT * FROM orders WHERE user_id = 5)
+Without index: Scans all rows (slow)
+With index: Finds directly (fast)
+
+Create Index in Migration:
+Schema::create('orders', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained();
+    // Create index on user_id for faster queries
+    $table->index('user_id');
+    $table->index('status'); // Also index status for filtering
+    $table->index(['user_id', 'status']); // Composite index
+});
+
+Common Indexes Needed:
+- user_id (finding user's orders)
+- status (filtering by order status)
+- created_at (sorting by date)
+- order_id in assignment (finding assignments)
+
+Query Optimization:
+Bad (N+1 problem):
+$orders = Order::all(); // 1 query
+foreach ($orders as $order) {
+    echo $order->user->name; // N queries (one per order)
+}
+# Total: 1 + N queries
+
+Good (Eager Loading):
+$orders = Order::with('user')->get(); // 2 queries
+foreach ($orders as $order) {
+    echo $order->user->name; // Uses loaded data
+}
+# Total: 2 queries
+
+Monitoring Performance:
+$ php artisan tinker
+> \DB::enableQueryLog();
+> Order::with('user', 'items.product')->get();
+> \DB::getQueryLog(); # See all queries executed
+> count(\DB::getQueryLog()); # Query count
+
+Cache Frequently Accessed Data:
+$products = Cache::remember('products', 3600, function () {
+    return Product::where('is_available', true)->get();
+});
+
+================================================================================
+CONCLUSION
+================================================================================
+
+You've built a complete real-time food delivery system with:
+✓ User authentication & role-based authorization
+✓ Order management with status lifecycle
+✓ Smart staff assignment algorithm
+✓ Real-time notifications
+✓ Mobile-responsive design
+✓ Multi-device access
+✓ Production-ready architecture
+
+Key Takeaways:
+1. Database design is foundational (plan migrations carefully)
+2. Eloquent relationships model real-world connections
+3. Transactions prevent data corruption
+4. Broadcasting enables real-time UX
+5. Testing on real devices catches mobile issues
+6. Performance optimization matters at scale
+
+Next Steps:
+1. Deploy to cloud (Heroku, AWS, DigitalOcean)
+2. Add payment processing (Stripe, PayPal)
+3. Add notifications (SMS, Email)
+4. Implement analytics (user behavior, revenue)
+5. Scale infrastructure (load balancing, CDN)
+
+Further Learning:
+- Laravel Documentation: laravel.com
+- Pusher Documentation: pusher.com
+- Test Driven Development (TDD)
+- API design (if building mobile app)
+- DevOps & deployment (Docker, CI/CD)
+
+================================================================================
+End of Curriculum
+================================================================================

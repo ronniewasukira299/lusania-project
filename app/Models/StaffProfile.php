@@ -17,6 +17,6 @@ class StaffProfile extends Model
     }
     public function assignments()
     {
-        return $this->hasMany(Assignemet::class, 'staff_id', 'user_id');
+        return $this->hasMany(Assignment::class, 'staff_id', 'user_id');
     }
 }

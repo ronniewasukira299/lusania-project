@@ -146,30 +146,63 @@ function confirmDelivery(orderId) {
 // Listen for order updates in real-time
 document.addEventListener('DOMContentLoaded', function() {
   // Subscribe to order-specific channels if Pusher is initialized
-  if (window.PusherNotifications && window.PusherNotifications.initialized) {
+  if (window.PusherNotifications && window.PusherNotifications.pusher) {
     const orderIds = document.querySelectorAll('[data-order-id]');
     orderIds.forEach(el => {
       const orderId = el.getAttribute('data-order-id');
       const channel = window.PusherNotifications.pusher.subscribe(`private-orders.${orderId}`);
       
-      // Update UI when order status changes
-      channel.bind('order.in_transit', (data) => {
-        updateOrderStatus(orderId, 'in_transit');
+      // Update UI when order is assigned
+      channel.bind('order.assigned', (data) => {
+        updateOrderUI(orderId, 'assigned', data);
       });
       
+      // Update UI when order status changes to in_transit
+      channel.bind('order.in_transit', (data) => {
+        updateOrderUI(orderId, 'in_transit', data);
+      });
+      
+      // Update UI when order status changes to delivered
       channel.bind('order.delivered', (data) => {
-        updateOrderStatus(orderId, 'delivered');
+        updateOrderUI(orderId, 'delivered', data);
       });
     });
   }
 });
 
-function updateOrderStatus(orderId, status) {
-  const statusBadge = document.querySelector(`[data-order-id="${orderId}"] .order-status-badge`);
+function updateOrderUI(orderId, status, data) {
+  const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+  if (!orderCard) return;
+  
+  // Update status badge
+  const statusBadge = orderCard.querySelector('.order-status-badge');
   if (statusBadge) {
-    const badgeClass = status === 'delivered' ? 'bg-success' : 'bg-info';
+    let badgeClass = 'bg-warning';
+    if (status === 'delivered') {
+      badgeClass = 'bg-success';
+    } else if (status === 'in_transit') {
+      badgeClass = 'bg-info';
+    }
     statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
     statusBadge.className = `badge ${badgeClass}`;
+  }
+  
+  // Update action buttons based on status
+  const confirmBtn = orderCard.querySelector('button[onclick*="confirmDelivery"]');
+  const actionDiv = orderCard.querySelector('.row:last-child .col-12');
+  
+  if (status === 'in_transit' && confirmBtn) {
+    // Show confirmation button
+    confirmBtn.style.display = 'block';
+  } else if (status === 'delivered') {
+    // Show success message, hide button
+    if (actionDiv) {
+      actionDiv.innerHTML = `
+        <div class="alert alert-success mb-0">
+          <strong>✓ Delivered!</strong> Thank you for your order. We hope you enjoyed it!
+        </div>
+      `;
+    }
   }
 }
 </script>

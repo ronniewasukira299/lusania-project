@@ -117,19 +117,13 @@ document.getElementById("whatsapp-button").addEventListener("click", () => {
   const address = document.getElementById("address").value;
   const payment = document.getElementById("payment").value;
 
-  let message = `*🍗 NEW CHICKEN LUSANIA ORDER 🍗*%0A%0A
-👤 Name: ${name}%0A
-📞 Phone: ${phone}%0A
-📍 Address: ${address}%0A
-💳 Payment: ${payment}%0A%0A
-🧾 *Order Details:*%0A`;
+  let message = `*🍗 NEW CHICKEN LUSANIA ORDER 🍗*\n\n👤 Name: ${name}\n📞 Phone: ${phone}\n📍 Address: ${address}\n💳 Payment: ${payment}\n\n🧾 *Order Details:*\n`;
 
   checkoutItems.forEach(item => {
-    message += `• ${item.name} × ${item.qty} — UGX ${item.price * item.qty}%0A`;
+    message += `• ${item.name} × ${item.qty} — UGX ${item.price * item.qty}\n`;
   });
 
-  message += `%0A🚚 Delivery: UGX ${deliveryFee}%0A
-💰 *Total Payable:* UGX ${total + deliveryFee}`;
+  message += `\n🚚 Delivery: UGX ${deliveryFee}\n💰 *Total Payable:* UGX ${total + deliveryFee}`;
 
   const whatsappNumber = "256751438976";
   window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
@@ -181,13 +175,27 @@ document.getElementById("checkout-form").addEventListener("submit", function(e) 
       items: items
     })
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.message || 'Failed to place order');
+      });
+    }
+    return response.json();
+  })
   .then(data => {
     if (data.success) {
       localStorage.removeItem("cart");
       localStorage.removeItem("checkout");
-      alert('Order placed successfully! Redirecting...');
-      window.location.href = '{{ route("success") }}';
+      // Show success message and redirect
+      const successMsg = document.createElement('div');
+      successMsg.className = 'alert alert-success position-fixed top-0 start-0 w-100 rounded-0';
+      successMsg.style.zIndex = '9999';
+      successMsg.textContent = '✅ Order placed successfully! Redirecting...';
+      document.body.prepend(successMsg);
+      setTimeout(() => {
+        window.location.href = '{{ route("success") }}';
+      }, 1500);
     } else {
       alert('Error: ' + (data.message || 'Failed to place order'));
       submitBtn.disabled = false;
@@ -196,9 +204,14 @@ document.getElementById("checkout-form").addEventListener("submit", function(e) 
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('An error occurred. Please try again.');
+    // Don't show generic error if order was created (user can check /orders)
+    alert('There was an issue, but your order may have been placed. Check your Orders page to verify.');
     submitBtn.disabled = false;
     submitBtn.textContent = '📦 Place Order in System';
+    // Still redirect to orders to check
+    setTimeout(() => {
+      window.location.href = '{{ route("my-orders") }}';
+    }, 2000);
   });
 });
 </script>

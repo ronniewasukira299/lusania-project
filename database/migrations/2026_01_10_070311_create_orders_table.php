@@ -20,6 +20,7 @@ return new class extends Migration
                 'assigned',
                 'in_transit',
                 'delivered',
+                'cancelled',
             ])->default('pending');
 
             $table->decimal('total_amount', 10, 2)->default(0);

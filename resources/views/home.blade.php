@@ -78,9 +78,19 @@
                                     </div>
                                 @else
                                     <div class="col-12 col-sm-6 col-lg-6">
-                                        <a href="{{ route('dashboard') }}" class="btn btn-custom btn-warning w-100 fw-bold">
-                                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                                        </a>
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('admin.dashboard') }}" class="btn btn-custom btn-warning w-100 fw-bold">
+                                                <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
+                                            </a>
+                                        @elseif(auth()->user()->role === 'staff')
+                                            <a href="{{ route('staff.dashboard') }}" class="btn btn-custom btn-warning w-100 fw-bold">
+                                                <i class="bi bi-speedometer2 me-2"></i>Staff Dashboard
+                                            </a>
+                                        @else
+                                            <a href="{{ route('products') }}" class="btn btn-custom btn-warning w-100 fw-bold">
+                                                <i class="bi bi-shop me-2"></i>Shop Now
+                                            </a>
+                                        @endif
                                     </div>
                                 @endguest
 
