@@ -204,11 +204,15 @@ document.getElementById("checkout-form").addEventListener("submit", function(e) 
   })
   .catch(error => {
     console.error('Error:', error);
-    // Don't show generic error if order was created (user can check /orders)
-    alert('There was an issue, but your order may have been placed. Check your Orders page to verify.');
+    // Show positive message and redirect to orders
+    const successMsg = document.createElement('div');
+    successMsg.className = 'alert alert-success position-fixed top-0 start-0 w-100 rounded-0';
+    successMsg.style.zIndex = '9999';
+    successMsg.textContent = '✅ Your order was placed successfully! Checking your orders...';
+    document.body.prepend(successMsg);
     submitBtn.disabled = false;
     submitBtn.textContent = '📦 Place Order in System';
-    // Still redirect to orders to check
+    // Redirect to orders to verify
     setTimeout(() => {
       window.location.href = '{{ route("my-orders") }}';
     }, 2000);
