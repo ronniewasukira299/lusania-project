@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpq-dev \
+    nodejs \
+    npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql pdo_pgsql exif pcntl bcmath zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -29,8 +31,11 @@ COPY . .
 # Copy .env.example to .env (prevents artisan crash if .env missing)
 RUN cp .env.example .env || true
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+#Install Node Dependencies and build frontend assets
+RUN npm install && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
