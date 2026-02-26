@@ -2,78 +2,118 @@
 
 namespace Database\Seeders;
 
-use App\Models\Product;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Product;
 
 class ProductSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the products table with 9 Lusania products
-     */
     public function run(): void
     {
+        \DB::statement('TRUNCATE TABLE lusania.products RESTART IDENTITY CASCADE');
+
         $products = [
-            // Set 1
+            // IMAGE BASED PRODUCTS
             [
-                'name' => 'Half Chicken mix with chips',
-                'price' => 20000,
-                'description' => 'Our signature classic fried chicken lusaniya',
+                'name'         => 'Half Chicken mix with chips',
+                'description'  => 'A delicious serving of Chicken Lusania — perfect for one.',
+                'price'        => 20000,
                 'is_available' => true,
-                'image' => '20k.jpg',
+                'image'        => '20k.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
             ],
             [
-                'name' => 'Dry Half Chicken Pilau with chip',
-                'price' => 35000,
-                'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'name'         => 'Dry Half Chicken Pilau with chip',
+                'description'  => 'A generous serving of Chicken Lusania for a light sharing.',
+                'price'        => 35000,
                 'is_available' => true,
-                'image' => '35k.jpg',
+                'image'        => '35k.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
             ],
             [
-                'name' => 'Full chicken mix with chips',
-                'price' => 35000,
-                'description' => 'Perfect for families - serves 4-5 people',
+                'name'         => 'Full chicken mix with chips',
+                'description'  => 'A satisfying family-size serving of Chicken Lusania.',
+                'price'        => 50000,
                 'is_available' => true,
-                'image' => '20k.jpg',
-            ],
-            // Set 2
-            [
-                'name' => 'Lusaniya for 2/3 people',
-                'price' => 50000,
-                'description' => 'Our signature classic fried chicken lusaniya',
-                'is_available' => true,
-                'image' => '50k.jpg',
+                'image'        => '50k.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
             ],
             [
-                'name' => 'Lusaniya for 4 people',
-                'price' => 70000,
-                'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'name'         => 'Lusaniya for 2/3 people',
+                'description'  => 'A large serving of Chicken Lusania, great for small gatherings.',
+                'price'        => 70000,
                 'is_available' => true,
-                'image' => '70k.jpg',
+                'image'        => '70k.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
             ],
             [
-                'name' => 'Lusaniya for 8 people',
-                'price' => 90000,
-                'description' => 'Perfect for families - serves 8 people',
+                'name'         => 'Lusaniya for 5/6 people',
+                'description'  => 'Our special serving with extra accompaniments for a group.',
+                'price'        => 70000,
                 'is_available' => true,
-                'image' => '90k.jpg',
-            ],
-            // Set 3
-            [
-                'name' => 'Lusaniya for 5/6 people',
-                'price' => 70000,
-                'description' => 'Our signature classic fried chicken lusaniya',
-                'is_available' => true,
-                'image' => '70kk.jpg'
+                'image'        => '70kk.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
             ],
             [
-                'name' => 'Dry Half Chicken with chip',
-                'price' => 20000,
-                'description' => 'Hot and spicy chicken lusaniya with extra seasoning',
+                'name'         => 'Lusaniya for 8 people',
+                'description'  => 'Our premium large serving — the ultimate Lusania experience.',
+                'price'        => 90000,
                 'is_available' => true,
-                'image' => '20k.jpg'
+                'image'        => '90k.jpg',
+                'video'        => null,
+                'name2'        => null,
+                'price2'       => null,
+            ],
+
+            // VIDEO BASED PRODUCTS
+            [
+                'name'         => 'Full Chicken Plain',
+                'description'  => 'A whole chicken, perfectly seasoned and fried to perfection.',
+                'price'        => 28000,
+                'is_available' => true,
+                'image'        => null,
+                'video'        => '28k.mp4',
+                'name2'        => null,
+                'price2'       => null,
+            ],
+            [
+                'name'         => 'Half Chicken Pilau',
+                'description'  => 'Half chicken served with aromatic pilau rice.',
+                'price'        => 30000,
+                'is_available' => true,
+                'image'        => null,
+                'video'        => '40k.mp4',
+                'name2'        => 'Half Chicken Pilau with Chips',
+                'price2'       => 35000,
+            ],
+            [
+                'name'         => 'Full Chicken Pilau',
+                'description'  => 'A full chicken served with aromatic pilau rice.',
+                'price'        => 40000,
+                'is_available' => true,
+                'image'        => null,
+                'video'        => '40k.mp4',
+                'name2'        => 'Full Chicken Pilau with Chips',
+                'price2'       => 45000,
+            ],
+            [
+                'name'         => 'Lusaniya for 10 people',
+                'description'  => 'The ultimate feast — feeds a crowd in style.',
+                'price'        => 200000,
+                'is_available' => true,
+                'image'        => null,
+                'video'        => '200k.mp4',
+                'name2'        => null,
+                'price2'       => null,
             ],
         ];
 

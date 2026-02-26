@@ -54,7 +54,7 @@
                         <!-- Logo -->
                         <img src="{{ asset('images/logo.png') }}"
                              alt="Caleb's Chicken Lusaniya Logo"
-                             class="logo-img mb-4 img-fluid">
+                             class="logo-img mb-4 img-fluid mx-auto d-block">
 
                         <!-- Hero -->
                         <h1 class="hero-title mb-3">Welcome to Caleb's Chicken Lusaniya</h1>
@@ -121,10 +121,10 @@
                         </div>
 
                         <!-- Menu Image Section -->
-                        <div class="mt-5">
+                        <div class="mt-5 text-center">
                             <img src="{{ asset('images/menu.png') }}"
                                  alt="Caleb's Chicken Lusaniya Menu"
-                                 class="menu-img img-fluid">
+                                 class="menu-img img-fluid mx-auto">
                         </div>
                     </div>
                 </div>

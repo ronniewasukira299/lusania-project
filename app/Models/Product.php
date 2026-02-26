@@ -12,5 +12,7 @@ class Product extends Model
         'price',
         'is_available',
         'image',
+        'video',
+        'price2',
     ];
 }
