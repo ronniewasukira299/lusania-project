@@ -87,7 +87,7 @@
       </div>
       <div class="col-md-4 mb-4">
         <h5 class="text-warning">Contact Us</h5>
-        <p>Email: support@jcalebschickenlusaniya.com</p>
+        <p>Email: Calebuchickenlusaniya@gmail.com</p>
         <p>Phone: +256 751438976 /+256 769895805</p>
         <p>Address: Wandegeya Market Southwing ground floor</p>
       </div>

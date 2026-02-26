@@ -14,11 +14,15 @@
                  data-name="{{ $product->name }}"
                  data-price="{{ $product->price }}">
 
-                <img src="{{ asset('images/st.jpeg') }}" class="card-img-top" alt="{{ $product->name }}">
+                <img src="{{ $product->image ? asset('images/' . $product->image) : asset('images/st.jpeg') }}"
+                     class="card-img-top"
+                     alt="{{ $product->name }}"
+                     style="height: 260px; object-fit: cover;">
 
-                <div class="card-body text-center">
-                    <h5>{{ $product->name }}</h5>
-                    <p>UGX {{ number_format($product->price) }}</p>
+                <div class="card-body d-flex flex-column text-center">
+                    <h5 class="card-title">{{ $product->name }}</h5>
+                    <p class="text-muted small flex-grow-1" style="-webkit-line-clamp:2; -webkit-box-orient:vertical; display:-webkit-box; overflow:hidden;">{{ $product->description }}</p>
+                    <p class="fw-bold mb-3">UGX {{ number_format($product->price) }}</p>
 
                     <!-- Quantity selector -->
                     <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
@@ -93,7 +97,7 @@ document.querySelectorAll(".buy-now").forEach(btn => {
             qty: qty
         };
 
-        cart = [product]; // Replace cart with this single item
+        cart = [product];
         localStorage.setItem("cart", JSON.stringify(cart));
         localStorage.setItem("checkout", JSON.stringify(cart));
 
