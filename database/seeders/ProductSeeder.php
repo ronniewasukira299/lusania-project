@@ -9,7 +9,7 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        \DB::statement('TRUNCATE TABLE lusania.products RESTART IDENTITY CASCADE');
+        \DB::statement('TRUNCATE TABLE products RESTART IDENTITY CASCADE');
 
         $products = [
             // IMAGE BASED PRODUCTS
